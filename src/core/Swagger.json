@@ -1,0 +1,3777 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Vegan Bowls",
+    "description": "",
+    "termsOfService": "",
+    "contact": {
+      "email": ""
+    },
+    "license": {
+      "name": "",
+      "url": ""
+    },
+    "version": "1.0.0"
+  },
+  "host": "https://",
+  "externalDocs": {
+    "description": "",
+    "url": ""
+  },
+  "servers": [
+    {
+      "url": "http://192.168.1.97:8081"
+    },
+    {
+      "url": "http://192.168.1.92:8080"
+    },
+    {
+      "url": "http://18.216.110.103/"
+    },
+    {
+      "url": "https://app.veganbowls.com/"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "authentication",
+      "description": "authentication APIs"
+    },
+    {
+      "name": "ingredient",
+      "description": "Ingridient APIs"
+    },
+    {
+      "name": "recipe",
+      "description": "recipe APIs"
+    },
+    {
+      "name": "featureProduct",
+      "description": "featuredProduct APIs"
+    },
+    {
+      "name": "post",
+      "description": "post APIs"
+    },
+    {
+      "name": "guide",
+      "description": "guide APIs"
+    },
+    {
+      "name": "shoppingList",
+      "description": "shoppingList APIs"
+    },
+    {
+      "name": "shoppingList > personal recipe",
+      "description": "recipe APIs"
+    },
+    {
+      "name": "Settings",
+      "description": "settings APIs"
+    },
+    {
+      "name": "FAQ",
+      "description": "FAQ APIs"
+    },
+    {
+      "name": "notification",
+      "description": "push notification APIs"
+    },
+    {
+      "name": "subscription",
+      "description": "subscription APIs"
+    },
+    {
+      "name": "tag",
+      "description": "tag APIs"
+    }
+  ],
+  "paths": {
+    "/api/registration": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Registration ",
+        "requestBody": {
+          "description": "Registration, Allow Notification 0=> Not now, 1=> Allow(default), user_login_type 1=> normal, 2=>google, 3=>apple",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "test125@gmail.com",
+                  "password": "12345678",
+                  "unit_preference": 1,
+                  "device_model": "12",
+                  "os_version": "15",
+                  "build_version": "12",
+                  "device_token": "demo",
+                  "platform_type": 1,
+                  "google_client_id": "",
+                  "apple_client_id": "",
+                  "allowNotification": 1,
+                  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYTAwZmY5ZmMtYzY1NC00M2Y2LWFlZDYtZDBmYjBkNjY0MmM3IiwiaWF0IjoxNjYzODQ0NTIxLCJleHAiOjE2NjM5MzA5MjF9.7xlKN8DRKbMk2_1sxB8_CkMDJz2FmVa8wj4xu4TiVl8",
+                  "user_login_type": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Login ",
+        "requestBody": {
+          "description": "Login",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "d@gmail.com",
+                  "password": "12345678",
+                  "device_model": "sdk_gphone_x86",
+                  "os_version": "30",
+                  "build_version": "1.0",
+                  "device_token": "qwerasdfzcxbv",
+                  "platform_type": 2,
+                  "google_client_id": "",
+                  "apple_client_id": ""
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/adminLogin": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Authenticate admin",
+        "requestBody": {
+          "description": "Authenticate admin",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "diego@differenz.com",
+                  "password": "ChangeMe007"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/guestUserBrowse": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Guest user",
+        "requestBody": {
+          "description": "Guest user",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "device_model": "Google sdk_gphone_x86",
+                  "os_version": "11",
+                  "build_version": "1.0",
+                  "device_token": "qwerasdfzcxbv",
+                  "platform_type": 2,
+                  "unit_preference": 2,
+                  "google_client_id": "",
+                  "apple_client_id": "",
+                  "allowNotification": 1,
+                  "user_login_type": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/resetPassword": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Reset user password",
+        "requestBody": {
+          "description": "Reset user password",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "mihirborsaliwala@gmail.com",
+                  "newPassword": "123456"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addAdmin": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Create a new admin",
+        "requestBody": {
+          "description": "Create a new admin",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "test",
+                  "email": "abc567@gmail.com",
+                  "password": "abc",
+                  "permission_id": [
+                    "18598718-c28d-4e26-b08c-7188c8b9f162",
+                    "b095d746-63fa-4f84-91c2-c21ce8b2655c"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/logoutUser": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Logout user",
+        "requestBody": {
+          "description": "Logout user",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDhlMDhkNzYtZWRmZC00YzRiLTk3NGItMjJiYzczN2JmMjYzIiwiZW1haWwiOiJkQGdtYWlsLmNvbSIsImlhdCI6MTY2MTg1Nzk1OCwiZXhwIjoxNjYxOTQ0MzU4fQ.Z03bwx1oPUELQQ20zt9N6-vq2jzFt7BtfidpDaITpo4"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/fetchAdminProfile": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Find user detail by ID",
+        "description": "Returns a single user detail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2RiYWNmYzktMzg0NS00M2YzLTg0ZmMtNGU2MTY5OWM3OTcyIiwiZW1haWwiOiJzaGVldGFsdmFkaGVyQGdtYWlsLmNvbSIsImlhdCI6MTY1OTA4MDQ3NiwiZXhwIjoxNjU5MTY2ODc2fQ.9oXJk1I0iaYAoxYfxPNVlF-LLsntzPjGCAISw1QzP94"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addPemission": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Add permission",
+        "requestBody": {
+          "description": "Add permission",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "FAQ"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listPermission": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "List permission",
+        "description": "List permission",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listAdmin": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "List admin",
+        "description": "List admin, 'sort_field': 'name' or 'email', 'sort_order': 'ASC' or 'DESC'",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 13,
+                  "page_no": 1,
+                  "search": "",
+                  "sort_field": "name",
+                  "sort_order": "ASC"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editAdmin": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Edit admin",
+        "requestBody": {
+          "description": "Edit admin",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "user_id": "",
+                  "name": "abc",
+                  "email": "abc@gmail.com",
+                  "password": "abc",
+                  "permission": [
+                    "18598718-c28d-4e26-b08c-7188c8b9f162",
+                    "b095d746-63fa-4f84-91c2-c21ce8b2655c"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/adminResetPassword": {
+      "put": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Admin reset password",
+        "parameters": [
+          {
+            "name": "temp_key",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "eyJhbGc..."
+          }
+        ],
+        "requestBody": {
+          "description": "Admin reset password",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "newPassword": "12345678"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/socialAuth": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Social auth",
+        "requestBody": {
+          "description": "Social auth",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "preetitundiwala@gmail.com",
+                  "device_model": "Google sdk_gphone_x86112",
+                  "unit_preference": 1,
+                  "os_version": "11",
+                  "build_version": "1.0",
+                  "device_token": "asas",
+                  "platform_type": 2,
+                  "google_client_id": "117640021988462021195",
+                  "apple_client_id": "",
+                  "access_token": "",
+                  "user_login_type": 2,
+                  "allowNotification": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getAdmin": {
+      "get": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Find user detail by ID",
+        "description": "Returns a single user detail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "79ba912d-17f7-4318-b50c-57fca304ac97"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/updateAdminProfile": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Update admin profile",
+        "requestBody": {
+          "description": "Update admin profile",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "user_id": "0ae77331-8b6a-4838-ad5d-c1adc936269d",
+                  "email": "sheetalvadher1234@gmail.com",
+                  "old_password": "1234567",
+                  "new_password": "123456"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteAdmin": {
+      "delete": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Delete admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "cd5cfa70-e6fa-43b5-bc98-6c6ae72e9362"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addIngredient": {
+      "post": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Add ingredient",
+        "requestBody": {
+          "description": "Add ingredient",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": {
+                  "ingredients": [
+                    {
+                      "ingredient_name": "sugar",
+                      "ingredient_category_id": "1668ad37-9f89-41f3-bddb-595cbc5f1dc5",
+                      "created_by": "0ae77331-8b6a-4838-ad5d-c1adc936269d"
+                    },
+                    {
+                      "ingredient_name": "Onion",
+                      "ingredient_category_id": "1668ad37-9f89-41f3-bddb-595cbc5f1dc5",
+                      "created_by": "0ae77331-8b6a-4838-ad5d-c1adc936269d"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editIngredient": {
+      "put": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Edit ingredient",
+        "requestBody": {
+          "description": "Edit ingredient",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "ingredient_id": "1151047d-3236-49e2-839d-80ea678b7547",
+                  "ingredient_name": "test",
+                  "ingredient_type": "Fruits + Veggies",
+                  "updated_by": "cdbacfc9-3845-43f3-84fc-4e61699c7972"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listIngredient": {
+      "post": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "List ingredient",
+        "requestBody": {
+          "description": "List ingredient, 'sort_field': 'ingredient_name' or 'ingredient_category_id', 'sort_order': 'ASC' or 'DESC'",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 13,
+                  "page_no": 1,
+                  "search": "",
+                  "sort_field": "indgredient_type",
+                  "sort_order": "ASC"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteIngredient": {
+      "delete": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Delete ingredient",
+        "parameters": [
+          {
+            "name": "ingredient_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "8d3cd1bc-c04f-43c1-ada3-2449f14e1c4a"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getIngredient": {
+      "get": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Find ingredient detail by ID",
+        "description": "Returns a single ingredient detail",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2RiYWNmYzktMzg0NS00M2YzLTg0ZmMtNGU2MTY5OWM3OTcyIiwiZW1haWwiOiJzaGVldGFsdmFkaGVyQGdtYWlsLmNvbSIsImlhdCI6MTY1OTA4MDQ3NiwiZXhwIjoxNjU5MTY2ODc2fQ.9oXJk1I0iaYAoxYfxPNVlF-LLsntzPjGCAISw1QzP94"
+          },
+          {
+            "name": "ingredient_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "61acb7d4-c319-4b2b-90d6-b4d9a98b6bf7"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addIngredientCategory": {
+      "post": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Add ingredient category",
+        "requestBody": {
+          "description": "Add ingredient category",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "category_name": "test"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listIngredientCategory": {
+      "post": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "List ingredient",
+        "requestBody": {
+          "description": "List ingredient, 'sort_field': 'category_name', 'sort_order': 'ASC' or 'DESC'",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 14,
+                  "page_no": 1,
+                  "search": "",
+                  "sort_field": "",
+                  "sort_order": ""
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeIngredientCategory": {
+      "get": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Find recipe and ingredient category by ID",
+        "description": "Returns a single ingredient detail",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editIngredientCategory": {
+      "put": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Edit ingredient category",
+        "requestBody": {
+          "description": "Edit ingredient category",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "ingredient_category_id": "ff646cf1-79d5-4b90-9d87-cba1a59e42bc",
+                  "category_name": "test"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteIngredientCategory": {
+      "delete": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "Delete ingredient category",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ingredient_category_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "26be69ba-9122-408d-a9c3-7c3c546c45ef"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeIngredientsMeasurement": {
+      "get": {
+        "tags": [
+          "ingredient"
+        ],
+        "summary": "List recipe ingredients measurement",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Add Recipe",
+        "requestBody": {
+          "description": "Add Recipe",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "user_id": "08e08d76-edfd-4c4b-974b-22bc737bf263",
+                  "recipe_name": "pizza",
+                  "recipe_category_id": "9d4070ae-8043-4c34-a0d0-c610f61bfb1f",
+                  "description": "pizza",
+                  "is_premium": 1,
+                  "contributor_type": 2,
+                  "contributor_name": "mr.X",
+                  "contributor_url": "url",
+                  "contributor_id": "@mrx",
+                  "contributor_profile": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/download_%282%29_1662363359687.jpeg",
+                  "serving_size": 3,
+                  "video_url": "dasdas",
+                  "send_notification": 0,
+                  "status": 0,
+                  "photos": [
+                    {
+                      "recipe_photos_id": "0",
+                      "photo_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/7d1a3f77eee9f34782c6f88e97a6c888_1662115824275.7d1a3f77eee9f34782c6f88e97a6c888.jpg"
+                    },
+                    {
+                      "recipe_photos_id": "0",
+                      "photo_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/4x3-veg-schezwan-noodles-recipe-video-how-to-make-easy-veg-schezwan-noodles_1661856132915.4x3-veg-schezwan-noodles-recipe-video-how-to-make-easy-veg-schezwan-noodles.jpg"
+                    }
+                  ],
+                  "ingredient_section": [
+                    {
+                      "section_name": "ing pizza 2",
+                      "ingredient_section_id": "0",
+                      "ingredient_section_sort_order": 1,
+                      "ingredient": [
+                        {
+                          "qty": 2,
+                          "recipe_ingredients_measurement_id": "6a712780-9f1a-4884-8e14-9ba94333022f",
+                          "ingredient_id": "5f8bb4b5-0a35-408c-8db0-0d926b08343d",
+                          "recipe_ingredient_id": "0",
+                          "ingredient_sort_order": 1
+                        },
+                        {
+                          "qty": 10,
+                          "recipe_ingredients_measurement_id": "5505ec46-13a0-45d9-bf41-4848e1c6567b",
+                          "ingredient_id": "6f8defc5-4901-48d7-ad1f-80c54a083e86",
+                          "recipe_ingredient_id": "0",
+                          "ingredient_sort_order": 2
+                        }
+                      ]
+                    },
+                    {
+                      "section_name": "ing pizza 1",
+                      "ingredient_section_id": "0",
+                      "ingredient_section_sort_order": 2,
+                      "ingredient": [
+                        {
+                          "qty": 1,
+                          "recipe_ingredients_measurement_id": "6a712780-9f1a-4884-8e14-9ba94333022f",
+                          "ingredient_id": "3ba12f75-63fb-4c64-b086-302607a6e8cd",
+                          "recipe_ingredient_id": "0",
+                          "ingredient_sort_order": 1
+                        },
+                        {
+                          "qty": 1,
+                          "recipe_ingredients_measurement_id": "702bf3db-f4af-424f-a5ee-0cc5de2bc53e",
+                          "ingredient_id": "15d8681a-faab-4d2a-9283-d67bc44eecbe",
+                          "recipe_ingredient_id": "0",
+                          "ingredient_sort_order": 2
+                        },
+                        {
+                          "qty": 1,
+                          "recipe_ingredients_measurement_id": "6a712780-9f1a-4884-8e14-9ba94333022f",
+                          "ingredient_id": "dd999625-ef8c-45ec-99cf-eb5e9bb1d652",
+                          "recipe_ingredient_id": "0",
+                          "ingredient_sort_order": 3
+                        }
+                      ]
+                    }
+                  ],
+                  "instructions_section": [
+                    {
+                      "section_name": "ins pizza 2",
+                      "instruction_section_id": "0",
+                      "instruction_section_sort_order": 1,
+                      "instructions": [
+                        {
+                          "description": "add salt",
+                          "instruction_sort_order": 1,
+                          "recipe_method_id": "0"
+                        },
+                        {
+                          "description": "add Oregano",
+                          "instruction_sort_order": 2,
+                          "recipe_method_id": "0"
+                        },
+                        {
+                          "description": "add Red Chilli",
+                          "instruction_sort_order": 3,
+                          "recipe_method_id": "0"
+                        }
+                      ]
+                    },
+                    {
+                      "section_name": "ins pizza 1",
+                      "instruction_section_id": "0",
+                      "instruction_section_sort_order": 2,
+                      "instructions": [
+                        {
+                          "description": "add onion",
+                          "instruction_sort_order": 1,
+                          "recipe_method_id": "0"
+                        },
+                        {
+                          "description": "add tomato",
+                          "instruction_sort_order": 2,
+                          "recipe_method_id": "0"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editRecipe": {
+      "put": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Edit Recipe",
+        "requestBody": {
+          "description": "Edit Recipe",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "is_live": 2,
+                  "recipe_id": "0fe50ae9-efeb-49f3-8e95-6b15619c27c3",
+                  "user_id": "0e04e5d4-d6c6-4534-9bc6-f8418e9403d2",
+                  "recipe_name": "123221",
+                  "recipe_category_id": "9d4070ae-8043-4c34-a0d0-c610f61bfb1f",
+                  "description": "pizza",
+                  "is_premium": 1,
+                  "contributor_type": 2,
+                  "contributor_name": "mr.X",
+                  "contributor_url": "url",
+                  "contributor_id": "@mrx",
+                  "contributor_profile": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/download_%282%29_1662363359687.jpeg",
+                  "serving_size": 3,
+                  "video_url": "dasdas",
+                  "send_notification": 0,
+                  "status": 0,
+                  "photos": [
+                    {
+                      "recipe_photos_id": "70bb7d58-7c4a-4b14-a361-0ffdc39f9fef",
+                      "photo_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/4x3-veg-schezwan-noodles-recipe-video-how-to-make-easy-veg-schezwan-noodles_1661856132915.4x3-veg-schezwan-noodles-recipe-video-how-to-make-easy-veg-schezwan-noodles.jpg"
+                    },
+                    {
+                      "recipe_photos_id": "ceff7faf-fffb-4383-ac89-61b8ed51e81a",
+                      "photo_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/download_%282%29_1661770408109.download%20%282%29.jpeg"
+                    },
+                    {
+                      "recipe_photos_id": "d810d7c6-1bb7-4ad3-b55a-6a86bf2f600f",
+                      "photo_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/download_%281%29_1661770396189.download%20%281%29.jpeg"
+                    }
+                  ],
+                  "ingredient_section": [
+                    {
+                      "section_name": "ing pizza 2",
+                      "ingredient_section_id": "7314857f-159b-4e3c-bfcd-e24898c5b68e",
+                      "ingredient_section_sort_order": 1,
+                      "ingredient": [
+                        {
+                          "qty": 2,
+                          "recipe_ingredients_measurement_id": "6a712780-9f1a-4884-8e14-9ba94333022f",
+                          "ingredient_id": "5f8bb4b5-0a35-408c-8db0-0d926b08343d",
+                          "recipe_ingredient_id": "1837a259-1943-4584-91dc-71a30d8dca3f",
+                          "ingredient_sort_order": 1
+                        },
+                        {
+                          "qty": 10,
+                          "recipe_ingredients_measurement_id": "5505ec46-13a0-45d9-bf41-4848e1c6567b",
+                          "ingredient_id": "6f8defc5-4901-48d7-ad1f-80c54a083e86",
+                          "recipe_ingredient_id": "2e49d2b8-4672-4a32-975b-15ef7fb87c09",
+                          "ingredient_sort_order": 2
+                        }
+                      ]
+                    },
+                    {
+                      "section_name": "ing pizza 1",
+                      "ingredient_section_id": "5065992c-20b7-4749-8a54-22adecf17dbc",
+                      "ingredient_section_sort_order": 2,
+                      "ingredient": [
+                        {
+                          "qty": 1,
+                          "recipe_ingredients_measurement_id": "6a712780-9f1a-4884-8e14-9ba94333022f",
+                          "ingredient_id": "3ba12f75-63fb-4c64-b086-302607a6e8cd",
+                          "recipe_ingredient_id": "3c597441-7f98-47cd-a6ee-0308f8868eef",
+                          "ingredient_sort_order": 1
+                        },
+                        {
+                          "qty": 1,
+                          "recipe_ingredients_measurement_id": "702bf3db-f4af-424f-a5ee-0cc5de2bc53e",
+                          "ingredient_id": "15d8681a-faab-4d2a-9283-d67bc44eecbe",
+                          "recipe_ingredient_id": "cd27c085-be3f-46fd-ab7e-e88ac0235149",
+                          "ingredient_sort_order": 2
+                        },
+                        {
+                          "qty": 1,
+                          "recipe_ingredients_measurement_id": "6a712780-9f1a-4884-8e14-9ba94333022f",
+                          "ingredient_id": "dd999625-ef8c-45ec-99cf-eb5e9bb1d652",
+                          "recipe_ingredient_id": "fe4107ff-fec5-419a-9878-a826377669bb",
+                          "ingredient_sort_order": 3
+                        }
+                      ]
+                    }
+                  ],
+                  "instructions_section": [
+                    {
+                      "section_name": "ins pizza 2",
+                      "instruction_section_id": "f823970d-5111-4d82-83c0-67bf0000cc09",
+                      "instruction_section_sort_order": 1,
+                      "instructions": [
+                        {
+                          "description": "add salt",
+                          "instruction_sort_order": 1,
+                          "recipe_method_id": "89c4c8c6-4685-4869-9847-adb05400f7ce"
+                        },
+                        {
+                          "description": "add Oregano",
+                          "instruction_sort_order": 2,
+                          "recipe_method_id": "d4aff864-fdfd-4c3b-b8ec-b3d4abd12228"
+                        },
+                        {
+                          "description": "add Red Chilli",
+                          "instruction_sort_order": 3,
+                          "recipe_method_id": "36246022-6b05-4bb4-b286-bc24b9fc1f32"
+                        }
+                      ]
+                    },
+                    {
+                      "section_name": "ins pizza 1",
+                      "instruction_section_id": "321dc12f-1fec-4c23-a2be-c76ae216d291",
+                      "instruction_section_sort_order": 2,
+                      "instructions": [
+                        {
+                          "description": "add onion",
+                          "instruction_sort_order": 1,
+                          "recipe_method_id": "89dc1687-55dd-4b31-872f-de6cd8e35c89"
+                        },
+                        {
+                          "description": "add tomato",
+                          "instruction_sort_order": 2,
+                          "recipe_method_id": "4cd52e99-b5c9-4074-a295-08e6f9327368"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List recipe",
+        "requestBody": {
+          "description": "List recipe, 'sort_field': 'recipe_name'or 'recipe_category_id' or 'status', 'sort_order': 'ASC' or 'DESC', sort_order is optional ",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 10,
+                  "page_no": 1,
+                  "search": "",
+                  "sort_field": "recipe_name",
+                  "sort_order": "ASC",
+                  "recipe_category_id": "",
+                  "is_admin": false
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeV1": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List recipe_V1",
+        "requestBody": {
+          "description": "List recipe_V1"
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeCategory_MBL": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List recipe category (MOBILE)",
+        "requestBody": {
+          "description": "List recipe category",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 50,
+                  "page_no": 1,
+                  "search": "",
+                  "sort_field": "recipe_name",
+                  "sort_order": "ASC"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/spotlightRecipe_V1": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "spotlight recipe_V1",
+        "requestBody": {
+          "description": "spotlight recipe_V1",
+          "required": false
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getRecipe": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Find recipe detail by ID",
+        "description": "Returns a single recipe detail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recipe_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "7bd59067-884f-44d3-80b4-fde63b975203"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listCategoryDataWithIngredient": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List Recipe category, ingredient and measurement data",
+        "description": "List Recipe category, ingredient and measurement data",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listCategoryData": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List category data",
+        "description": "List category data",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteRecipe": {
+      "delete": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Delete a recipe",
+        "parameters": [
+          {
+            "name": "recipe_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "15b7d95a-7d9f-46cd-b9e6-6052093583eb"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addRecipeIngredientsMeasurement": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Add Recipe Ingredients Measurement",
+        "requestBody": {
+          "description": "Add Recipe Ingredients Measurement",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "Teaspoons"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/favoriteRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Add Recipe in favorite",
+        "requestBody": {
+          "description": "Add Recipe in favorite",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "recipe_id": "07fac3d6-8693-4fb3-852c-fae2d17929e9",
+                  "is_favorite": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteFavoriteRecipe": {
+      "delete": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Delete favorite recipe",
+        "requestBody": {
+          "description": "Delete favorite recipe",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "delete_action": 1,
+                  "favoritesRecipeList": []
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listFavoriteRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List favorite recipe",
+        "requestBody": {
+          "description": "List favorite recipe",
+          "required": false,
+          "content": {}
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/likeRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Like Recipe",
+        "requestBody": {
+          "description": "Like Recipe",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "recipe_id": "505e0ea9-4a74-4a24-9a93-d087f623b67b",
+                  "is_liked": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteLikeRecipe": {
+      "delete": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Delete like recipe",
+        "parameters": [
+          {
+            "name": "like_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "11c6fe04-3bac-47d4-8f91-5bc13dfa68cb"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listLikeRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "List favorite recipe",
+        "requestBody": {
+          "description": "List favorite recipe",
+          "required": false,
+          "content": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addRecipeCategory": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Add Recipe category",
+        "requestBody": {
+          "description": "Add Recipe category",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "category_name": "new test",
+                  "image_url": "bcvjn"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeCategory": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": ":List recipe category",
+        "requestBody": {
+          "description": "List ingredient category, 'sort_field': 'category_name', 'sort_order': 'ASC' or 'DESC'",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_no": 1,
+                  "page_record": 10,
+                  "sort_order": "",
+                  "sort_field": "",
+                  "search": ""
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editRecipeCategory": {
+      "put": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Edit Recipe Category",
+        "requestBody": {
+          "description": "Edit recipe Category",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "recipe_category_id": "9e1bc618-bff1-4d1f-a6c3-31ae4e798cdd",
+                  "category_name": "new twst1111",
+                  "image_url": "bfdhjvbnbkjb"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteRecipeCategory": {
+      "delete": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Delete recipe category",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recipe_category_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "9e1bc618-bff1-4d1f-a6c3-31ae4e798cdd"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getRecipeDetail": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Find recipe detail by ID",
+        "requestBody": {
+          "description": "Find recipe detail by ID",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "recipe_id": "5343df3c-c489-4b47-bdb5-fb3f480438e9"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/latestRecipe": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Find recipe detail by ID",
+        "requestBody": {
+          "description": "Find recipe detail by ID",
+          "required": false,
+          "content": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/homePageDetails": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Home page details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getGuidesDetails": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Get guides details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getFeatureProductsDetails": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Get Feature product details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/setLiveRecipe": {
+      "put": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Set live recipe",
+        "requestBody": {
+          "description": "Set live recipe, is_action : 1 = live, is_action : 2 = draft",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "recipe_id": "cd344a3f-ed94-484d-bd44-525429e3d21c",
+                  "is_action": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/fetchRecipeDetails": {
+      "get": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Fetch recipe, 1=Live, 2=Drafts, 3=Scheduled",
+        "requestBody": {
+          "required": false,
+          "content": {}
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/selectInstructions": {
+      "post": {
+        "tags": [
+          "recipe"
+        ],
+        "summary": "Instructions detials select",
+        "requestBody": {
+          "description": "Instructions detials select, is_action : 1 = insert, is_action : 2 = delete",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "is_action": 1,
+                  "recipe_id": "0d906067-75b0-44bf-8f8a-889959b83e5a",
+                  "instruction_section_id": "e70f0785-d848-4c08-a646-c1aa5aec5f63",
+                  "recipe_method_id": "04bfae92-e14a-4071-bda5-40f138fad975"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addFeatureProduct": {
+      "post": {
+        "tags": [
+          "featureProduct"
+        ],
+        "summary": "Add feature product",
+        "requestBody": {
+          "description": "Add feature product",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "test free",
+                  "thumbnail_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/Screenshot_from%202022-08-24%2010-39-20_1661317760407.Screenshot%20from%202022-08-24%2010-39-20.png",
+                  "product_price": "10",
+                  "product_url": "https://www.google.co.in/",
+                  "is_premium": 0,
+                  "send_notification": 0
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editFeatureProduct": {
+      "put": {
+        "tags": [
+          "featureProduct"
+        ],
+        "summary": "Edit feature product",
+        "requestBody": {
+          "description": "Edit featured product",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "featured_product_id": "73c830f6-ac45-42a0-9997-82f364af59f0",
+                  "name": "milkshake",
+                  "thumbnail_url": "https://vegan-assets.s3.us-east-2.amazonaws.com/images/qrio7p28_sandwich_625x300_17_April_21_1662636806471.qrio7p28_sandwich_625x300_17_April_21.webp",
+                  "product_price": 50,
+                  "product_url": "https://www.youtube.com/watch?v=10TTM1NaLPA",
+                  "send_notification": 1,
+                  "is_premium": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listFeatureProduct": {
+      "post": {
+        "tags": [
+          "featureProduct"
+        ],
+        "summary": "List featured product",
+        "requestBody": {
+          "description": "List featured product, 'sort_field' : 'name' and 'product_price',  'sort_order' : ASC or DESC",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_no": 1,
+                  "page_record": 10,
+                  "sort_order": "ASC",
+                  "sort_field": "product_price",
+                  "search": ""
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteFeatureProduct": {
+      "delete": {
+        "tags": [
+          "featureProduct"
+        ],
+        "summary": "Delete feature product",
+        "parameters": [
+          {
+            "name": "featured_product_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "1fa07237-40ac-43c3-8092-1f647d9b97c8"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getFeaturedProductById": {
+      "get": {
+        "tags": [
+          "featureProduct"
+        ],
+        "summary": "Get feature product by ID",
+        "description": "Get feature product by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "featured_product_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "a58dd766-a482-47a8-baf3-566367dbfcc0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/sortFeatureProduct": {
+      "post": {
+        "tags": [
+          "featureProduct"
+        ],
+        "summary": "Sort feature product",
+        "requestBody": {
+          "description": "Sort feature product",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "sortOrderData": [
+                    {
+                      "featured_product_id": "1274632f-56f2-482b-a1b5-9933982a6d9d",
+                      "sort_order": 1
+                    },
+                    {
+                      "featured_product_id": "1274632f-56f2-482b-a1b5-9933982a6d9d1",
+                      "sort_order": 2
+                    },
+                    {
+                      "featured_product_id": "23a7d564-370b-4c7f-b6ae-86726646455a",
+                      "sort_order": 3
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addPost": {
+      "post": {
+        "tags": [
+          "post"
+        ],
+        "summary": "Add post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "thumbnail_url": "fgfgfgdf",
+                  "post_url": "gdfgjb"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addGuide": {
+      "post": {
+        "tags": [
+          "guide"
+        ],
+        "summary": "Add guide",
+        "requestBody": {
+          "description": "Add guide",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "guides_title": "How to Make a Smoothie Bowls",
+                  "guides_subtitle": "",
+                  "guides_photo": "/home/differenz79/Pictures/vegan-bowls/1620195458.png",
+                  "guides_text": "1. Prep your ingredients beforehand  /n Choose your favourite fruits. Mangoes, pineapples, watermelon, peaches, grapes and berries are great - any kind of fruit will do. Buy ripe and organic ones and chop them into small equal pieces, about 1-2 inches thick. Place them in a reusable container and freeze for at least 4 hours or overnight - for best results. Fruits taste best when in season - you can buy in bulk and freeze them for future uses, we like to use them in smoothies! /n  2. Use a high performance blender \n A high-speed blender can cut through frozen fruits, and will transform them into a soft-serve like ice cream easily - It's a thicker version of a smoothie that we're used to. A normal, low-speed blender will need more time to break down frozen fruits, and thus, will result in a less thicker consistency. \n   3. Do not add too much liquid \n A tiny amount of liquid is needed, but no more than 1/4 cup per two servings. Adding too much liquid will result in a thinner consistency. This is totally fine if this is the consistency that you want. But for a smoothie bowl, thicker smoothies are always the best way to go. ",
+                  "send_notification": 1,
+                  "is_premium": 0
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editGuide": {
+      "put": {
+        "tags": [
+          "guide"
+        ],
+        "summary": "Edit guide",
+        "requestBody": {
+          "description": "Edit guide",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "guides_id": "c78a890b-6e7d-4be6-be30-b0d24a9539b4",
+                  "guides_title": "How to Make a Smoothie Bowls",
+                  "guides_subtitle": "smoothie",
+                  "guides_photo": "/home/differenz79/Pictures/vegan-bowls/1620195458.png",
+                  "guides_text": "1. Prep your ingredients beforehand  /n Choose your favourite fruits. Mangoes, pineapples, watermelon, peaches, grapes and berries are great - any kind of fruit will do. Buy ripe and organic ones and chop them into small equal pieces, about 1-2 inches thick. Place them in a reusable container and freeze for at least 4 hours or overnight - for best results. Fruits taste best when in season - you can buy in bulk and freeze them for future uses, we like to use them in smoothies! /n  2. Use a high performance blender \n A high-speed blender can cut through frozen fruits, and will transform them into a soft-serve like ice cream easily - It's a thicker version of a smoothie that we're used to. A normal, low-speed blender will need more time to break down frozen fruits, and thus, will result in a less thicker consistency. \n   3. Do not add too much liquid \n A tiny amount of liquid is needed, but no more than 1/4 cup per two servings. Adding too much liquid will result in a thinner consistency. This is totally fine if this is the consistency that you want. But for a smoothie bowl, thicker smoothies are always the best way to go. ",
+                  "send_notification": 1,
+                  "is_premium": 0
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listGuide": {
+      "post": {
+        "tags": [
+          "guide"
+        ],
+        "summary": "List guide ",
+        "requestBody": {
+          "description": "List guide, 'sort_field': 'guides_title', 'sort_order': 'ASC' or 'DESC'",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_no": 1,
+                  "page_record": 10,
+                  "sort_order": "",
+                  "sort_field": "",
+                  "search": ""
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteGuide": {
+      "delete": {
+        "tags": [
+          "guide"
+        ],
+        "summary": "Delete guide",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "guides_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "8d908493-e80a-402c-bfc0-80564c40b4f2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/getGuideDetail": {
+      "get": {
+        "tags": [
+          "guide"
+        ],
+        "summary": "Find giude detail by ID",
+        "description": "Returns a single guide detail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "guides_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "778b681d-38e4-4128-bb17-8d31a3d14fd9"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addCustomShoppingList": {
+      "post": {
+        "tags": [
+          "shoppingList > personal recipe"
+        ],
+        "summary": "Add custom shopping list",
+        "requestBody": {
+          "description": "Add custom shopping list",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "ingredient_name": "Test"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listCustomShoppingList": {
+      "post": {
+        "tags": [
+          "shoppingList > personal recipe"
+        ],
+        "summary": "List custom shopping list",
+        "requestBody": {
+          "description": "List custom shopping list",
+          "required": false,
+          "content": {}
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listIngredientShoppingList_V1": {
+      "get": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "List ingredient shopping list",
+        "requestBody": {
+          "description": "List ingredient shopping list",
+          "required": false,
+          "content": {}
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeShoppingList_V1": {
+      "get": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "List recipe shopping list",
+        "requestBody": {
+          "description": "List recipe shopping list",
+          "required": false,
+          "content": {}
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addShoppingList_V1": {
+      "post": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "Add shopping list",
+        "requestBody": {
+          "description": "Add shopping list",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "is_action": 1,
+                  "user_serving_qty": 5,
+                  "recipe_id": "0035948c-6f04-46a4-af1c-4b9c730bd42a",
+                  "recipeIngredientIDs": [
+                    "1589b0cc-eedc-40ce-be72-589cb45e1c63",
+                    "8d29e432-4c27-430a-86b6-23a8b692c8dd"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteCustomShoppingListById": {
+      "delete": {
+        "tags": [
+          "shoppingList > personal recipe"
+        ],
+        "summary": "Delete custom shopping list by Id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_ingredient_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "ba98a5f0-d366-455f-b55e-b03166b102b2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteAllCustomShoppingList": {
+      "post": {
+        "tags": [
+          "shoppingList > personal recipe"
+        ],
+        "summary": "Delete all custom shopping list",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": {
+                  "user_ingredient_id": [
+                    "ad5d3b57-5e14-432c-885b-2934c2e70df6",
+                    "9f91e111-caca-4be3-b374-a267f24f9b34"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addShoppingList": {
+      "post": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "Add shopping list ",
+        "requestBody": {
+          "description": "Add shopping list ",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "is_action": 1,
+                  "user_serving_qty": 10,
+                  "recipe_id": "7f564c5c-7658-4a60-9442-6db7bed31dac",
+                  "ingredient": [
+                    {
+                      "ingredient_section_id": "9fab9530-e79c-4bbe-9b6a-f7c7f08cce67",
+                      "ingredient_id": "2b7eb3c7-4b22-430d-bbff-afcee4a82b06"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteShoppingListById": {
+      "delete": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "Delete shopping list by Id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shopping_list_item_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "f48cd9f9-5e37-4974-b59f-50847499b94c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteShoppingList": {
+      "post": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "Delete shopping list",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": {
+                  "shopping_list_item_id": [
+                    "80f035dd-4098-471f-9b53-dc2780540529",
+                    "d30961e3-c127-45db-8fdb-5962889d5cfb"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listIngredientShoppingList": {
+      "get": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "List ingredient shopping list",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listRecipeShoppingList": {
+      "get": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "list recipe shopping list",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/removeIngredientShopping": {
+      "delete": {
+        "tags": [
+          "shoppingList"
+        ],
+        "summary": "Remove ingredient shopping",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "example": {
+                  "delete_action": 2,
+                  "aisleList": [
+                    "6f8defc5-4901-48d7-ad1f-80c54a083e86"
+                  ],
+                  "recipeList": [],
+                  "personalData": [
+                    "69b93443-6fd4-4d66-a0bb-1268191a263e",
+                    "aaea020b-2db9-4e5f-8396-44642c3da6bd"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/sendEmail": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Send OTP through email",
+        "requestBody": {
+          "description": "Send OTP through email, action : 1 => reset password, action : 2 => update email",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "mihirborsaliwala@gmail.com",
+                  "action_type": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/verifyOTP": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Verify OTP",
+        "requestBody": {
+          "description": "Verify OTP",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "mihirborsaliwala@gmail.com",
+                  "client_otp": 8563
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/changePassword": {
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Change user password ",
+        "requestBody": {
+          "description": "Change user password",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "d@gmail.com",
+                  "oldPassword": "12345678",
+                  "newPassword": "1234567890"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/changeEmail": {
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Change email",
+        "requestBody": {
+          "description": "Change email",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "newEmail": "mihirborsaliwala75@gmail.com",
+                  "clientOTP": 21618
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/setUnitPreference": {
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Set unit preference ",
+        "requestBody": {
+          "description": "Set unit preference,  1.Imperia, 2.Metric",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "unitPreferenceType": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/setNotificationPreference": {
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Set notification preference ",
+        "requestBody": {
+          "description": "Set notification preference,  0 => OFF 1 => ON",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "new_recipe": 1,
+                  "new_guide": 1,
+                  "new_products": 1,
+                  "general_announcements": 1,
+                  "device_token": ""
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteUserAccount": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Delete user account",
+        "requestBody": {
+          "description": "Delete user account",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "password": "123456"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addFAQ": {
+      "post": {
+        "tags": [
+          "FAQ"
+        ],
+        "summary": "Add FAQ ",
+        "requestBody": {
+          "description": "Add FAQ",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "title": "demo",
+                  "description": "this is demo",
+                  "sort_order": 1
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editFAQ": {
+      "put": {
+        "tags": [
+          "FAQ"
+        ],
+        "summary": "Edit FAQ",
+        "requestBody": {
+          "description": "Edit FAQ",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "faq_id": "2412d648-245f-4854-a29e-479cb807126a",
+                  "title": "demo",
+                  "description": "this is DEMO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listFAQ": {
+      "get": {
+        "tags": [
+          "FAQ"
+        ],
+        "summary": "List FAQ ",
+        "requestBody": {
+          "description": "List FAQ",
+          "required": true,
+          "content": {
+            "application/json": {}
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteFAQ": {
+      "delete": {
+        "tags": [
+          "FAQ"
+        ],
+        "summary": "Delete FAQ",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "faq_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "2412d648-245f-4854-a29e-479cb807126a"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/sortFaq": {
+      "post": {
+        "tags": [
+          "FAQ"
+        ],
+        "summary": "Sort FAQ",
+        "requestBody": {
+          "description": "Sort FAQ",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "sortOrderData": [
+                    {
+                      "faq_id": "08f74fc5-1c6c-4aeb-b898-2ce6bd645cb8",
+                      "sort_order": 1
+                    },
+                    {
+                      "faq_id": "d2bfb0b8-1cf5-4145-9d4a-852f878b7228",
+                      "sort_order": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addNotification": {
+      "post": {
+        "tags": [
+          "notification"
+        ],
+        "summary": "Add notification ",
+        "requestBody": {
+          "description": "Add notification",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "notification_title": "Recipe",
+                  "notification_description": "this is Baking Sandwich",
+                  "is_sent": 1,
+                  "notification_type": 2,
+                  "page_id": "98081264-d214-4c7c-8fdb-dbea3ee7a05b",
+                  "notification_schedule_time": {
+                    "scheduleTime": "2022-11-21T09:35:31.820Z",
+                    "time_zone": "AST"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listNotification": {
+      "post": {
+        "tags": [
+          "notification"
+        ],
+        "summary": "List notification ",
+        "requestBody": {
+          "description": "List notification",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 10,
+                  "page_no": 1,
+                  "sort_field": "notification_type",
+                  "sort_order": "ASC"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteNotification": {
+      "delete": {
+        "tags": [
+          "notification"
+        ],
+        "summary": "Delete notification",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "d3c13ec7-85cf-4b7c-b628-a72875b11a10"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/userSubscription": {
+      "post": {
+        "tags": [
+          "subscription"
+        ],
+        "summary": "User subscription",
+        "requestBody": {
+          "description": "User subscription",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "purchase_platform_type": 2,
+                  "receiptData": "{\"orderId\":\"GPA.3328-3920-7092-28065\",\"packageName\":\"com.awakenedmind.android\",\"productId\":\"com.awakenedmind.premium.monthly\",\"purchaseTime\":1667392817415,\"purchaseState\":0,\"purchaseToken\":\"pgjgogemnalmlnhdfllnpfkn.AO-J1Oyie_WDiwPR02oh9EXBDS7C9AIWb_O5WiIlZNl6EAbKKOzq82LPlwUXTQqv9MPuhSrsuovqIV8W9hy7GFjmZdwieIsKQGjHq7a-IKygRYZ-pgMEHgg\",\"quantity\":1,\"autoRenewing\":true,\"acknowledged\":false}"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/userSubscriptionDetails": {
+      "post": {
+        "tags": [
+          "subscription"
+        ],
+        "summary": "User subscription details",
+        "requestBody": {
+          "description": "User subscription details",
+          "required": false,
+          "content": {}
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/restoreUserSubscription": {
+      "post": {
+        "tags": [
+          "subscription"
+        ],
+        "summary": "Restore user subscription",
+        "requestBody": {
+          "description": "Restore user subscription",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "purchase_platform_type": 2,
+                  "receiptData": "recipe Datails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/addTag": {
+      "post": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Add tag",
+        "requestBody": {
+          "description": "Add tag",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "tag_name": "Mono Meal"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/editTag": {
+      "put": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Edit tag",
+        "requestBody": {
+          "description": "Edit tag",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "tag_id": "3b503a11-83c2-4b08-a576-ed7b9328e216",
+                  "tag_name": "aabb"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/deleteTag": {
+      "delete": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "Delete tag",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tag_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "4f285622-d688-4469-924b-2629b38c21f2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/listTag": {
+      "post": {
+        "tags": [
+          "tag"
+        ],
+        "summary": "List tag",
+        "requestBody": {
+          "description": "List tag",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "page_record": 10,
+                  "sort_field": "tag_name",
+                  "search": "",
+                  "sort_order": "DESC"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
