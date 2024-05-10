@@ -3,7 +3,6 @@ const { NextFunction, Request, response } = require("express");
 const { SuccessResponse, BadRequestError, ApiError } = require("../core/index");
 const { dbReader, dbWriter } = require("../models/dbconfig");
 const { Op } = dbReader.Sequelize;
-
 const { v4: uuidv4 } = require("uuid");
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
@@ -118,6 +117,28 @@ class TaskController {
         getTasks = JSON.parse(JSON.stringify(getTasks))
       }
       return new SuccessResponse("Task lists.", getTasks).send(
+        res
+      );
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // ? Sub-admin list for add leads | task...
+  getSubAdmins = async (req, res) => {
+    try {
+      let data = await dbReader.users.findAll({
+        attributes: ['user_id', 'name'],
+        where: {
+          is_deleted: 0,
+          user_role: 2
+        }
+      })
+
+      if (data) {
+        data = JSON.parse(JSON.stringify(data))
+      }
+      return new SuccessResponse("Sub-admin list.", data).send(
         res
       );
     } catch (e) {

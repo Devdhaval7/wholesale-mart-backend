@@ -23,15 +23,13 @@ exports.jois = {
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().required(),
-    permission_id: Joi.array().required().allow(null, ""),
-    user_role: Joi.number()
+    permission_id: Joi.array().required(),
   }),
   editAdminPayload: Joi.object().keys({
     user_id: Joi.string().required(),
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     permission_id: Joi.array().required().allow(null, ""),
-    user_role: Joi.number()
   }),
   listAdminPayload: Joi.object().keys({
     page_record: Joi.number().optional(),

@@ -492,10 +492,10 @@ class AuthController {
   // Add new admin
   addAdmin = async (req, res) => {
     try {
-      let { name, email, password, permission_id, user_role } = req.body;
+      let { name, email, password, permission_id } = req.body;
       permission_id = JSON.stringify(permission_id);
       let user_id = uuidv4();
-      user_role = 2;
+      let user_role = 2;
       let userData = await dbReader.users.findOne({
         where: {
           email: email,
@@ -560,21 +560,15 @@ class AuthController {
   //Edit detail of admin
   editAdmin = async (req, res) => {
     try {
-      let { user_id, name, email, permission_id, user_role } = req.body;
+      let { user_id, name, email, permission_id } = req.body;
       permission_id = JSON.stringify(permission_id);
-      let data = {
-        user_id: user_id,
-        email: email
-      };
-      let access_token = jwt.sign(data, jwt_secret);
+
       var unixTimestamp = Math.floor(new Date().getTime() / 1000);
       let updated_datetime = JSON.stringify(unixTimestamp);
       let userData = await dbWriter.users.update(
         {
           name,
           email,
-          user_role,
-          access_token,
           updated_datetime
         },
         {
@@ -595,7 +589,7 @@ class AuthController {
         }
       );
 
-      return new SuccessResponse("Admin has been added successfully.", {}).send(
+      return new SuccessResponse("Admin has been updated successfully.", {}).send(
         res
       );
     } catch (e) {
@@ -645,7 +639,7 @@ class AuthController {
         include: [
           {
             model: dbReader.users,
-            attributes: ["name", "email"],
+            // attributes: ["name", "email"],
             where: dbReader.Sequelize.and(
               dbReader.Sequelize.or({
                 name: {
@@ -802,6 +796,14 @@ class AuthController {
       var unixTimestamp = Math.floor(new Date().getTime() / 1000);
       let created_datetime = JSON.stringify(unixTimestamp),
         updated_datetime = JSON.stringify(unixTimestamp);
+      let validatePermission = await dbWriter.permissions.findOne({
+        where: {
+          name: name
+        }
+      })
+      if (validatePermission) {
+        throw new Error("Permission already exists.")
+      }
       let permissionData = await dbWriter.permissions.create({
         permission_id,
         name,
