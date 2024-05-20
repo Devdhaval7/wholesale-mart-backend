@@ -11,12 +11,13 @@ const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const jwt_secret = process.env.SECRET_KEY;
 const moment = require("moment");
-
+const { generateProductHexCode } = require("../helpers/general");
 
 class ProductController {
     // ? List all Products
     listProducts = async (req, res) => {
         try {
+            let user_role = req.user.user_role
             var { page_record, page_no, search, sort_field, sort_order } = req.body;
             var row_offset = 0,
                 row_limit = 10;
@@ -51,6 +52,31 @@ class ProductController {
                 sortJoin = [dbReader.Sequelize.literal("price"), sortOrder];
             }
 
+
+            let whereCondition
+
+            if (user_role === 0) {
+                whereCondition = dbReader.Sequelize.and(
+                    dbReader.Sequelize.or({
+                        product_name: {
+                            [SearchCondition]: SearchData
+                        }
+                    }),
+                    dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`status`'), 1),
+                    dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`is_deleted`'), 0)
+                )
+            } else {
+                whereCondition = dbReader.Sequelize.and(
+                    dbReader.Sequelize.or({
+                        product_name: {
+                            [SearchCondition]: SearchData
+                        }
+                    }),
+                    dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`is_deleted`'), 0)
+                )
+            }
+
+
             let getAllProducts = await dbReader.product.findAndCountAll({
                 include: [{
                     model: dbReader.productCategory
@@ -59,13 +85,7 @@ class ProductController {
                 }, {
                     model: dbReader.productPhotos
                 }],
-                where: dbReader.Sequelize.and(
-                    dbReader.Sequelize.or({
-                        product_name: {
-                            [SearchCondition]: SearchData
-                        }
-                    })
-                ),
+                where: whereCondition,
                 order: [sortJoin],
                 limit: row_limit,
                 offset: row_offset
@@ -74,6 +94,44 @@ class ProductController {
             if (getAllProducts) {
                 getAllProducts = JSON.parse(JSON.stringify(getAllProducts))
 
+                let user_id = req.user.user_id
+                let getCartDetails = await dbReader.shoppingList.findOne({
+                    include: [{
+                        model: dbReader.shoppingListItems,
+                        where: {
+                            is_deleted: 0
+                        },
+                        include: [{
+                            model: dbReader.product,
+                        }]
+                    }],
+                    where: {
+                        user_id: user_id,
+                        is_deleted: 0
+                    }
+                })
+                if (!_.isEmpty(getCartDetails)) {
+                    getCartDetails = JSON.parse(JSON.stringify(getCartDetails))
+                }
+                if (getAllProducts.rows.length > 0) {
+                    getAllProducts.rows = getAllProducts.rows.map(ele => {
+                        let _pid = ele.product_id
+                        if (getCartDetails && getCartDetails.wm_shopping_list_items.length > 0) {
+                            let _qty = 0
+                            getCartDetails.wm_shopping_list_items.map(i => {
+                                if (i.product_id === _pid) {
+                                    _qty = i.qty
+                                }
+                                // else {
+                                //     _qty = 0
+                                // }
+                            })
+                            return { ...ele, qty: _qty }
+                        } else {
+                            return { ...ele, qty: 0 }
+                        }
+                    })
+                }
                 return new SuccessResponse("List of products.", getAllProducts).send(
                     res
                 );
@@ -87,74 +145,151 @@ class ProductController {
         }
     };
 
-    // ? Craete products...
-    addProduct = async (req, res) => {
+    // ? Product details
+    getProductDetails = async (req, res) => {
         try {
+            var { id } = req.params;
+            let product_id = id
 
-            let {
-                product_category_id, product_subcategory_id, product_name, product_description,
-                price, attribute_color, attribute_material, attribute_shape, attribute_size,
-                status, product_images
-            } = req.body
-            let product_id = uuidv4()
-            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
-            let created_datetime = JSON.stringify(unixTimestamp),
-                updated_datetime = JSON.stringify(unixTimestamp);
-
-            // validate product 
-            let _validateProduct = await dbReader.product.findOne({
+            let getProductData = await dbReader.product.findOne({
+                include: [{
+                    model: dbReader.productCategory
+                }, {
+                    model: dbReader.productSubCategory
+                }, {
+                    model: dbReader.productPhotos
+                }],
                 where: {
-                    product_name: product_name,
+                    product_id: product_id,
                     is_deleted: 0
                 }
             })
 
-            if (!_.isEmpty(_validateProduct)) {
-                throw new Error("Sorry, Same named product is alraedy exist.")
-            }
+            if (getProductData) {
+                getProductData = JSON.parse(JSON.stringify(getProductData))
 
-            let createProduct = await dbWriter.product.create({
-                product_id: product_id,
-                product_category_id: product_category_id,
-                product_subcategory_id: product_subcategory_id,
-                product_name: product_name,
-                product_description: product_description,
-                price: price,
-                attribute_color: attribute_color,
-                attribute_material: attribute_material,
-                attribute_shape: attribute_shape,
-                attribute_size: attribute_size,
-                status: status,
-                is_deleted: 0,
-                created_datetime: created_datetime,
-                updated_datetime: updated_datetime,
-            })
-
-            // store images...
-            let formattedString = product_images.replace(/\[|\]|'/g, '');
-            let _product_images = formattedString.split(',');
-            if (_product_images.length > 0) {
-                let n = 0, _img_sort_order = 1
-                while (n < _product_images.length) {
-                    let product_photo_id = uuidv4()
-                    let _photo_url = _product_images[n]
-
-                    await dbWriter.productPhotos.create({
-                        product_photo_id: product_photo_id,
-                        product_id: product_id,
-                        photo_url: _photo_url,
-                        img_sort_order: _img_sort_order,
-                        is_deleted: 0,
-                        created_datetime: created_datetime,
-                        updated_datetime: updated_datetime,
-                    })
-
-                    n++
-                    _img_sort_order++
+                let user_id = req.user.user_id
+                let getCartDetails = await dbReader.shoppingList.findOne({
+                    include: [{
+                        model: dbReader.shoppingListItems,
+                        where: {
+                            is_deleted: 0
+                        },
+                        include: [{
+                            model: dbReader.product,
+                        }]
+                    }],
+                    where: {
+                        user_id: user_id,
+                        is_deleted: 0
+                    }
+                })
+                if (!_.isEmpty(getCartDetails)) {
+                    getCartDetails = JSON.parse(JSON.stringify(getCartDetails))
                 }
+
+                let _pid = product_id
+                if (getCartDetails && getCartDetails.wm_shopping_list_items.length > 0) {
+                    let _qty = 0
+                    getCartDetails.wm_shopping_list_items.map(i => {
+                        if (i.product_id === _pid) {
+                            _qty = i.qty
+                        }
+                    })
+                    getProductData.qty = _qty
+                } else {
+                    getProductData.qty = 0
+                }
+
+            } else {
+                throw new Error("Data not found")
             }
 
-            return new SuccessResponse("Product addedd successfully.", createProduct).send(
+            return new SuccessResponse("Product details.", getProductData).send(res);
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+    // ? Create products...
+    addProduct = async (req, res) => {
+        try {
+
+            let { name, combinations } = req.body
+
+            // * validate product 
+            // let _validateProduct = await dbReader.product.findOne({
+            //     where: {
+            //         product_name: name,
+            //         is_deleted: 0
+            //     }
+            // })
+
+            // if (!_.isEmpty(_validateProduct)) {
+            //     throw new Error("Sorry, Same named product is already exist.")
+            // }
+
+            //  ? utilizing combinations
+            let n = 0
+            while (n < combinations.length) {
+                let product_id = uuidv4(), status = 1
+                let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+                let created_datetime = JSON.stringify(unixTimestamp),
+                    updated_datetime = JSON.stringify(unixTimestamp);
+                let product_code = await generateProductHexCode()
+                // made object and add.
+                let _obj = {
+                    product_id: product_id,
+                    product_code: product_code,
+                    product_category_id: combinations[n].product_category_id,
+                    product_subcategory_id: combinations[n].product_subcategory_id,
+                    product_name: name,
+                    product_description: combinations[n].description,
+                    product_variant: combinations[n].product_variant,
+                    unit_price: combinations[n].unit_price,
+                    cost_price: combinations[n].cost_price,
+                    rrr_price: combinations[n].rrr_price,
+                    stock: combinations[n].stock,
+                    attribute_color: combinations[n].attributes.Color || "",
+                    attribute_material: combinations[n].attributes.Material || "",
+                    attribute_shape: combinations[n].attributes.Shape || "",
+                    attribute_size: combinations[n].attributes.Size || "",
+                    status: status,
+                    is_deleted: 0,
+                    created_datetime: created_datetime,
+                    updated_datetime: updated_datetime,
+                }
+                let createProduct = await dbWriter.product.create(_obj)
+                if (createProduct) {
+                    // * adding products images...
+                    // if (combinations[n].product_images.length > 0) {
+                    //     let formattedString = combinations[n].product_images.replace(/\[|\]|'/g, '');
+                    //     let _product_images = formattedString.split(',');
+                    //     if (_product_images.length > 0) {
+                    //         let n = 0, _img_sort_order = 1
+                    //         while (n < _product_images.length) {
+                    //             let product_photo_id = uuidv4()
+                    //             let _photo_url = _product_images[n]
+                    //             await dbWriter.productPhotos.create({
+                    //                 product_photo_id: product_photo_id,
+                    //                 product_id: product_id,
+                    //                 photo_url: _photo_url,
+                    //                 img_sort_order: _img_sort_order,
+                    //                 is_deleted: 0,
+                    //                 created_datetime: created_datetime,
+                    //                 updated_datetime: updated_datetime,
+                    //             })
+                    //             n++
+                    //             _img_sort_order++
+                    //         }
+                    //     }
+                    // }
+                }
+                n++
+            }
+
+            return new SuccessResponse("Product added successfully.", {}).send(
                 res
             );
 
@@ -170,8 +305,8 @@ class ProductController {
             let { id } = req.params
             let {
                 product_category_id, product_subcategory_id, product_name, product_description,
-                price, attribute_color, attribute_material,
-                attribute_shape, attribute_size, product_images
+                product_variant, unit_price, cost_price, rrr_price, stock, attribute_color, attribute_material,
+                attribute_shape, attribute_size, product_images, status
             } = req.body
             let product_id = id
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
@@ -179,28 +314,33 @@ class ProductController {
                 updated_datetime = JSON.stringify(unixTimestamp);
 
             // validate product 
-            let _validateProduct = await dbReader.product.findOne({
-                where: {
-                    product_name: product_name,
-                    is_deleted: 0
-                }
-            })
+            // let _validateProduct = await dbReader.product.findOne({
+            //     where: {
+            //         product_name: product_name,
+            //         is_deleted: 0
+            //     }
+            // })
 
-            if (!_.isEmpty(_validateProduct)) {
-                throw new Error("Sorry, Same named product is alraedy exist.")
-            }
+            // if (!_.isEmpty(_validateProduct)) {
+            //     throw new Error("Sorry, Same named product is alraedy exist.")
+            // }
 
             let updateProduct = await dbWriter.product.update({
                 product_category_id: product_category_id,
                 product_subcategory_id: product_subcategory_id,
                 product_name: product_name,
                 product_description: product_description,
-                price: price,
+                product_variant: product_variant,
+                unit_price: unit_price,
+                cost_price: cost_price,
+                rrr_price: rrr_price,
+                stock: stock,
                 attribute_color: attribute_color,
                 attribute_material: attribute_material,
                 attribute_shape: attribute_shape,
                 attribute_size: attribute_size,
                 updated_datetime: updated_datetime,
+                status: status,
             }, {
                 where: {
                     product_id: product_id,
@@ -209,55 +349,55 @@ class ProductController {
             })
 
             // delete old images
-            let _getProductImages = await dbReader.productPhotos.findAll({
-                where: {
-                    product_id: product_id,
-                    is_deleted: 0
-                }
-            })
+            // let _getProductImages = await dbReader.productPhotos.findAll({
+            //     where: {
+            //         product_id: product_id,
+            //         is_deleted: 0
+            //     }
+            // })
 
-            if (_getProductImages) {
-                _getProductImages = JSON.parse(JSON.stringify(_getProductImages))
-                if (_getProductImages.length > 0) {
-                    let n = 0
-                    while (n < _getProductImages.length) {
+            // if (_getProductImages) {
+            //     _getProductImages = JSON.parse(JSON.stringify(_getProductImages))
+            //     if (_getProductImages.length > 0) {
+            //         let n = 0
+            //         while (n < _getProductImages.length) {
 
 
-                        await dbWriter.productPhotos.update({
-                            is_deleted: 1,
-                            updated_datetime: updated_datetime,
-                        }, {
-                            where: {
-                                product_id: product_id,
-                                is_deleted: 0
-                            }
-                        })
-                        n++
-                    }
-                }
-            }
+            //             await dbWriter.productPhotos.update({
+            //                 is_deleted: 1,
+            //                 updated_datetime: updated_datetime,
+            //             }, {
+            //                 where: {
+            //                     product_id: product_id,
+            //                     is_deleted: 0
+            //                 }
+            //             })
+            //             n++
+            //         }
+            //     }
+            // }
 
-            // store images...
-            let formattedString = product_images.replace(/\[|\]|'/g, '');
-            let _product_images = formattedString.split(',');
-            if (_product_images.length > 0) {
-                let n = 0, _img_sort_order = 1
-                while (n < _product_images.length) {
-                    let product_photo_id = uuidv4()
-                    let _photo_url = _product_images[n]
-                    await dbWriter.productPhotos.create({
-                        product_photo_id: product_photo_id,
-                        product_id: product_id,
-                        photo_url: _photo_url,
-                        img_sort_order: _img_sort_order,
-                        is_deleted: 0,
-                        created_datetime: created_datetime,
-                        updated_datetime: updated_datetime,
-                    })
-                    n++
-                    _img_sort_order++
-                }
-            }
+            // // store images...
+            // let formattedString = product_images.replace(/\[|\]|'/g, '');
+            // let _product_images = formattedString.split(',');
+            // if (_product_images.length > 0) {
+            //     let n = 0, _img_sort_order = 1
+            //     while (n < _product_images.length) {
+            //         let product_photo_id = uuidv4()
+            //         let _photo_url = _product_images[n]
+            //         await dbWriter.productPhotos.create({
+            //             product_photo_id: product_photo_id,
+            //             product_id: product_id,
+            //             photo_url: _photo_url,
+            //             img_sort_order: _img_sort_order,
+            //             is_deleted: 0,
+            //             created_datetime: created_datetime,
+            //             updated_datetime: updated_datetime,
+            //         })
+            //         n++
+            //         _img_sort_order++
+            //     }
+            // }
 
             return new SuccessResponse("Product updated successfully.", {}).send(
                 res
@@ -267,6 +407,50 @@ class ProductController {
             ApiError.handle(new BadRequestError(e.message), res);
         }
     }
+
+    // ? Delete products...
+    deleteProduct = async (req, res) => {
+        try {
+            let { id } = req.params
+            let product_id = id
+            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+
+            // validate product
+            let _validateProduct = await dbReader.product.findOne({
+                where: {
+                    product_id: product_id,
+                    is_deleted: 0
+                }
+            })
+
+            if (_.isEmpty(_validateProduct)) {
+                throw new Error("Data not found.")
+            } else {
+                // ! NOTE => check product is already been order or not....
+
+                await dbWriter.product.update({
+                    status: 0,
+                    is_deleted: 1
+                }, {
+                    where: {
+                        product_id: product_id,
+
+                    }
+                })
+            }
+
+            return new SuccessResponse("Product has been deleted successfully.", {}).send(
+                res
+            );
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
+
+    // * Product Category...     ----------------------------------
 
     // ? Add product category
     addProductCategory = async (req, res) => {
@@ -330,7 +514,7 @@ class ProductController {
     // ? Update product category
     updateProductCategory = async (req, res) => {
         try {
-            let { category_name, image_url, subcategoryArr } = req.body
+            let { category_name, product_category_id, image_url, subcategoryArr } = req.body
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
@@ -343,11 +527,11 @@ class ProductController {
                 }
             })
 
-            if (!_.isEmpty(_validateProductCategory)) {
-                throw new Error("Sorry, Same named product category is alraedy exist.")
-            }
+            // if (!_.isEmpty(_validateProductCategory)) {
+            //     throw new Error("Sorry, Same named product category is already exist.")
+            // }
 
-            let updateProductCategory = await dbWriter.productCategory.update({
+            await dbWriter.productCategory.update({
                 category_name: category_name,
                 image_url: image_url,
                 updated_datetime: updated_datetime,
@@ -362,21 +546,35 @@ class ProductController {
             if (subcategoryArr.length > 0) {
                 let n = 0
                 while (n < subcategoryArr.length) {
-                    let product_subcategory_id = uuidv4()
-                    await dbWriter.productSubCategory.create({
-                        product_subcategory_id: product_subcategory_id,
-                        product_category_id: product_category_id,
-                        subcategory_name: subcategoryArr[n].subcategory_name,
-                        image_url: subcategoryArr[n].image_url,
-                        is_deleted: 0,
-                        created_datetime: created_datetime,
-                        updated_datetime: updated_datetime,
-                    })
+                    if (subcategoryArr[n].product_subcategory_id) {
+                        await dbWriter.productSubCategory.update({
+                            subcategory_name: subcategoryArr[n].subcategory_name,
+                            // image_url: subcategoryArr[n].subcategory_name,
+                            image_url: subcategoryArr[n].subcategory_name,
+                            updated_datetime: updated_datetime,
+                        }, {
+                            where: {
+                                product_subcategory_id: subcategoryArr[n].product_subcategory_id,
+                                is_deleted: 0
+                            }
+                        })
+                    } else {
+                        let product_subcategory_id = uuidv4()
+                        await dbWriter.productSubCategory.create({
+                            product_subcategory_id: product_subcategory_id,
+                            product_category_id: product_category_id,
+                            subcategory_name: subcategoryArr[n].subcategory_name,
+                            image_url: subcategoryArr[n].image_url,
+                            is_deleted: 0,
+                            created_datetime: created_datetime,
+                        })
+                    }
+
                     n++
                 }
             }
 
-            return new SuccessResponse("Product category updated successfully.", updateProductCategory).send(
+            return new SuccessResponse("Product category updated successfully.", {}).send(
                 res
             );
 
@@ -390,7 +588,11 @@ class ProductController {
         try {
             let getAllProductsCategory = await dbReader.productCategory.findAll({
                 include: [{
-                    model: dbReader.productSubCategory
+                    required: false,
+                    model: dbReader.productSubCategory,
+                    where: {
+                        is_deleted: 0
+                    }
                 }],
                 where: {
                     is_deleted: 0
@@ -428,6 +630,10 @@ class ProductController {
             switch (action) {
                 case 1:
                     let _getCategory = await dbReader.productCategory.findOne({
+                        include: [{
+                            required: false,
+                            model: dbReader.product
+                        }],
                         where: {
                             product_category_id: category_id,
                             is_deleted: 0
@@ -436,51 +642,61 @@ class ProductController {
 
                     if (_getCategory) {
                         _getCategory = JSON.parse(JSON.stringify(_getCategory))
-                        await dbReader.productCategory.update({
-                            is_deleted: 1,
-                            updated_datetime: updated_datetime
-                        }, {
-                            where: {
-                                product_category_id: _getCategory.product_category_id,
-                                is_deleted: 0
-                            }
-                        })
+                        if (_getCategory.wm_product) {
+                            throw new Error("Can't delete this product category, it's already attached with product.")
+                        } else {
+                            await dbReader.productCategory.update({
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    product_category_id: _getCategory.product_category_id,
+                                    is_deleted: 0
+                                }
+                            })
 
-                        await dbReader.productSubCategory.update({
-                            is_deleted: 1,
-                            updated_datetime: updated_datetime
-                        }, {
-                            where: {
-                                product_category_id: _getCategory.product_category_id,
-                                is_deleted: 0
-                            }
-                        })
-
+                            await dbReader.productSubCategory.update({
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    product_category_id: _getCategory.product_category_id,
+                                    is_deleted: 0
+                                }
+                            })
+                        }
                     } else {
                         throw new Error("Data not found.")
                     }
                     break;
                 case 2:
                     let _getSubCategory = await dbReader.productSubCategory.findOne({
+                        include: [{
+                            required: false,
+                            model: dbReader.product
+                        }],
                         where: {
-                            product_category_id: category_id,
+                            product_subcategory_id: category_id,
                             is_deleted: 0
                         }
                     })
 
                     if (_getSubCategory) {
-                        _getSubCategory = JSON.parse(JSON.stringify(_getC_getSubCategoryategory))
+                        _getSubCategory = JSON.parse(JSON.stringify(_getSubCategory))
+                        if (_getSubCategory.wm_product) {
+                            throw new Error("Can't delete this product category, it's already attached with product.")
+                        } else {
 
-                        await dbReader.productSubCategory.update({
-                            is_deleted: 1,
-                            updated_datetime: updated_datetime
-                        }, {
-                            where: {
-                                product_category_id: _getSubCategory.product_category_id,
-                                is_deleted: 0
-                            }
-                        })
-
+                            await dbWriter.productSubCategory.update({
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    product_subcategory_id: _getSubCategory.product_subcategory_id,
+                                    is_deleted: 0
+                                }
+                            })
+                        }
                     } else {
                         throw new Error("Data not found.")
                     }
@@ -491,7 +707,7 @@ class ProductController {
                     break;
             }
 
-            return new SuccessResponse("List of products category.", {}).send(
+            return new SuccessResponse("Category has been Deleted.", {}).send(
                 res
             );
 

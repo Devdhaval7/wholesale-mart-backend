@@ -10,6 +10,7 @@ module.exports = function (sequelize, DataTypes) {
         unique: true
       },
       user_id: DataTypes.STRING(255),
+      is_deleted: DataTypes.TINYINT(1),
       created_datetime: DataTypes.STRING(255),
       updated_datetime: DataTypes.STRING(255)
     },
@@ -21,7 +22,6 @@ module.exports = function (sequelize, DataTypes) {
   );
 
   wm_shopping_list.associate = function (models) {
-  
     wm_shopping_list.hasMany(models.shoppingListItems, {
       foreignKey: 'shopping_list_id',
       targetKey: 'shopping_list_id'

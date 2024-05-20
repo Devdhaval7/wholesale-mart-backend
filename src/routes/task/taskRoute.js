@@ -16,6 +16,7 @@ class TaskRoute extends TaskController {
         router.get("/admin/getSubAdmins", tokenValidate, this.getSubAdmins)
         router.get("/admin/getTaskDetails/:id", tokenValidate, this.getTaskDetails)
         router.put("/admin/editTask/:id", tokenValidate, validator(jois.editTaskPayload), this.editTask)
+        router.put("/admin/updateTaskStatus/:id", tokenValidate, this.updateTaskStatus)
         router.delete("/admin/deleteTask/:id", tokenValidate, this.deleteTask)
     }
 }

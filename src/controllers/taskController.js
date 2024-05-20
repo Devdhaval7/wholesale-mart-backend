@@ -85,13 +85,16 @@ class TaskController {
       let getTasks
       if (user_role === 1) {
         getTasks = await dbReader.tasks.findAndCountAll({
+          include: [{
+            model: dbReader.users
+          }],
           where: dbReader.Sequelize.and(
             dbReader.Sequelize.or({
               title: {
                 [SearchCondition]: SearchData
               }
             }),
-            dbReader.Sequelize.where(dbReader.Sequelize.col('`is_deleted`'), 0),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`is_deleted`'), 0),
           ),
         })
       }
@@ -104,8 +107,8 @@ class TaskController {
                 [SearchCondition]: SearchData
               }
             }),
-            dbReader.Sequelize.where(dbReader.Sequelize.col('`is_deleted`'), 0),
-            dbReader.Sequelize.where(dbReader.Sequelize.col('`user_id`'), _user_id),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`is_deleted`'), 0),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`user_id`'), _user_id),
           ),
           order: sortJoin,
           limit: row_limit,
@@ -199,6 +202,50 @@ class TaskController {
           }, {
             where: {
               task_id: id,
+              is_deleted: 0
+            }
+          });
+        } else {
+          throw new Error('Data not found.')
+        }
+      } else {
+        throw new Error('insufficient permission.')
+      }
+
+      return new SuccessResponse("Task updated successfully.", {}).send(
+        res
+      );
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // ? update task status...
+  updateTaskStatus = async (req, res) => {
+    try {
+      let { id } = req.params
+      let { status } = req.body;
+
+      let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+      let created_datetime = JSON.stringify(unixTimestamp),
+        updated_datetime = JSON.stringify(unixTimestamp);
+
+      if (req.user.user_role === 2) {
+        let validateTask = await dbReader.tasks.findOne({
+          where: {
+            task_id: id,
+            is_deleted: 0
+          }
+        })
+
+        if (validateTask) {
+          await dbWriter.tasks.update({
+            status: status,
+            updated_datetime: updated_datetime
+          }, {
+            where: {
+              task_id: id,
+              user_id: req.user.user_id,
               is_deleted: 0
             }
           });

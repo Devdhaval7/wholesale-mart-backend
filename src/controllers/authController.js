@@ -10,6 +10,7 @@ const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const jwt_secret = process.env.SECRET_KEY;
 const moment = require("moment");
+const { sendMail } = require("../helpers/general");
 
 class AuthController {
 
@@ -464,18 +465,7 @@ class AuthController {
           permissionSlug.push(element.slug);
         });
 
-        // let spotlightVideoData = await dbReader.spotLightVideo.findOne({
-        //   attributes: ["spotlight_video_id", "video_url", "status"],
-        //   where: {
-        //     // status: 0,
-        //     is_deleted: 0
-        //   }
-        // });
-
         userProfile.permission = !_.isEmpty(permission) ? permissionSlug : [];
-        // userProfile.spotlightVideoData = !_.isEmpty(spotlightVideoData)
-        // ?  spotlightVideoData
-        //   : "";
       } else {
         throw new Error("User not found");
       }
@@ -496,6 +486,7 @@ class AuthController {
       permission_id = JSON.stringify(permission_id);
       let user_id = uuidv4();
       let user_role = 2;
+      let _mailPassword = password;
       let userData = await dbReader.users.findOne({
         where: {
           email: email,
@@ -546,6 +537,13 @@ class AuthController {
           });
           userData.permission = PermissionsData;
           userData.userProfile = adminProfiledata;
+
+          // send mail
+          let _mailOBJ = {
+            username: email,
+            password: _mailPassword,
+          }
+          await sendMail(_mailOBJ)
 
           return new SuccessResponse("Admin has been added successfully.", userData).send(
             res
@@ -878,7 +876,9 @@ class AuthController {
   //Update admin profile
   updateAdminProfile = async (req, res) => {
     try {
-      let { name, profile_image } = req.body;
+      let { name } = req.body;
+      // Check if file was uploaded
+      const profile_image = req.file ? req.file.buffer : null;
       let user_id = req.user.user_id
       let userData = await dbReader.users.findOne({
         where: {

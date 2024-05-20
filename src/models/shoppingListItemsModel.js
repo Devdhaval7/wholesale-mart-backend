@@ -13,6 +13,7 @@ module.exports = function (sequelize, DataTypes) {
       user_id: DataTypes.STRING(255),
       product_id: DataTypes.STRING(255),
       qty: DataTypes.INTEGER,
+      is_deleted: DataTypes.TINYINT(1),
       created_datetime: DataTypes.STRING(255),
       updated_datetime: DataTypes.STRING(255)
     },

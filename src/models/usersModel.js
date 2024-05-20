@@ -31,7 +31,7 @@ module.exports = function (sequelize, DataTypes) {
 
   wm_users.associate = function (models) {
     wm_users.belongsTo(models.adminPermissions, {
-      as: "admin_permissions",
+      // as: "admin_permissions",
       foreignKey: "user_id",
       targetKey: "user_id"
     });

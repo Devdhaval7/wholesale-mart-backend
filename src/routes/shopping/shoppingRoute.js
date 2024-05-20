@@ -12,9 +12,8 @@ class ShoppingRoute extends ShoppingController {
     route(router) {
         router.get("/getShoppingList", tokenValidate, this.getShoppingList);
         router.post("/addToCart", tokenValidate, validator(jois.addToCartPayload), this.addToCart);
-        router.delete("/removeFromCart/:id", tokenValidate, validator(jois.removeFromCartPayload, ValidationSource.QUERY), this.removeFromCart);
+        router.post("/removeFromCart/:id", tokenValidate, this.removeFromCart); // validator(jois.removeFromCartPayload, ValidationSource.QUERY),
         router.post("/placeOrder", tokenValidate, validator(jois.placeOrderPayload), this.placeOrder);
-
 
         router.post("/getMyOrders", tokenValidate, this.getMyOrders);
 
@@ -23,9 +22,7 @@ class ShoppingRoute extends ShoppingController {
         router.post("/admin/getOrderRequests", tokenValidate, this.getOrderRequests);
         router.post("/admin/orderRequestActions", tokenValidate, this.orderRequestActions);
         router.post("/admin/updatePaymentStatus", tokenValidate, this.updatePaymentStatus);
-
-
-
+        router.get("/admin/getOrderDetails/:id", tokenValidate, this.getOrderDetails);
     }
 }
 
