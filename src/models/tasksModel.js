@@ -34,6 +34,10 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: "user_id",
       targetKey: "user_id"
     });
+    wm_tasks.belongsTo(models.users, {
+      foreignKey: "user_id",
+      targetKey: "user_id"
+    });
   };
 
   return wm_tasks;

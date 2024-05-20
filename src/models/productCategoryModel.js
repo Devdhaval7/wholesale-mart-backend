@@ -27,6 +27,10 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: "product_category_id",
       targetKey: "product_category_id"
     });
+    wm_product_category.belongsTo(models.product, {
+      foreignKey: "product_category_id",
+      targetKey: "product_category_id"
+    });
   };
 
   return wm_product_category;

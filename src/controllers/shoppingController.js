@@ -2,7 +2,7 @@ const { ApiError, BadRequestError, SuccessResponse } = require("../core");
 const { dbReader, dbWriter } = require("../models/dbconfig");
 const _ = require("lodash");
 const { v4: uuidv4 } = require("uuid");
-const { generateRandomCode } = require("../helpers/general");
+const { generateRandomCode, generateProductHexCode } = require("../helpers/general");
 const moment = require('moment')
 const { Op } = dbReader.Sequelize;
 
@@ -15,6 +15,9 @@ class ShoppingController {
             let getCartDetails = await dbReader.shoppingList.findOne({
                 include: [{
                     model: dbReader.shoppingListItems,
+                    where: {
+                        is_deleted: 0
+                    },
                     include: [{
                         model: dbReader.product,
                         include: [{
@@ -27,14 +30,13 @@ class ShoppingController {
                     }]
                 }],
                 where: {
-                    user_id: user_id
+                    user_id: user_id,
+                    is_deleted: 0
                 }
             })
 
             if (!_.isEmpty(getCartDetails)) {
                 getCartDetails = JSON.parse(JSON.stringify(getCartDetails))
-            } else {
-                throw new Error("Shopping cart is empty.")
             }
 
             return new SuccessResponse("Shopping cart data.", getCartDetails).send(
@@ -62,6 +64,9 @@ class ShoppingController {
             let getCartDetails = await dbReader.shoppingList.findOne({
                 include: [{
                     model: dbReader.shoppingListItems,
+                    // where: {
+                    //     is_deleted: 0
+                    // },
                     include: [{
                         model: dbReader.product,
                         include: [{
@@ -74,7 +79,8 @@ class ShoppingController {
                     }]
                 }],
                 where: {
-                    user_id: user_id
+                    user_id: user_id,
+                    is_deleted: 0
                 }
             })
 
@@ -83,7 +89,7 @@ class ShoppingController {
                 // validate product and check qty...
                 let productMatch = false, _shopping_list_item_id
                 getCartDetails.wm_shopping_list_items.map(ele => {
-                    if (ele.product_id === product_id) {
+                    if (ele.product_id === product_id && ele.is_deleted == 0) {
                         productMatch = true
                         _shopping_list_item_id = ele.shopping_list_item_id
                     }
@@ -100,6 +106,7 @@ class ShoppingController {
                             shopping_list_item_id: _shopping_list_item_id,
                             user_id: user_id,
                             product_id: product_id,
+                            is_deleted: 0
                         }
                     })
 
@@ -128,7 +135,7 @@ class ShoppingController {
                 })
                 if (createShoppingCart) {
                     let shopping_list_item_id = uuidv4()
-                    let createShoopingItems = await dbWriter.shoppingListItems.create({
+                    let createShoppingItems = await dbWriter.shoppingListItems.create({
                         shopping_list_item_id: shopping_list_item_id,
                         shopping_list_id: shopping_list_id,
                         user_id: user_id,
@@ -167,12 +174,16 @@ class ShoppingController {
             let getCartDetails = await dbReader.shoppingList.findOne({
                 include: [{
                     model: dbReader.shoppingListItems,
+                    where: {
+                        is_deleted: 0
+                    },
                     include: [{
                         model: dbReader.product,
                     }]
                 }],
                 where: {
-                    user_id: user_id
+                    user_id: user_id,
+                    is_deleted: 0
                 }
             })
 
@@ -181,7 +192,10 @@ class ShoppingController {
                 let n = 0
                 while (n < getCartDetails.wm_shopping_list_items.length) {
                     if (getCartDetails.wm_shopping_list_items[n].product_id === product_id) {
-                        await dbWriter.shoppingListItems.destroy(
+                        await dbWriter.shoppingListItems.update({
+                            is_deleted: 1,
+                            updated_datetime: updated_datetime
+                        },
                             {
                                 where: {
                                     shopping_list_id: getCartDetails.shopping_list_id,
@@ -190,8 +204,6 @@ class ShoppingController {
                                     product_id: product_id,
                                 }
                             })
-                    } else {
-                        throw new Error("Product not found.")
                     }
                     n++
                 }
@@ -210,33 +222,32 @@ class ShoppingController {
     // place order...
     placeOrder = async (req, res) => {
         try {
-
             let { shopping_list_id } = req.body
-
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
-
             let user_id = req.user.user_id
-
             let getCartDetails = await dbReader.shoppingList.findOne({
                 include: [{
                     model: dbReader.shoppingListItems,
+                    // where: {
+                    //     is_deleted: 0
+                    // },
                     include: [{
                         model: dbReader.product,
                     }]
                 }],
                 where: {
                     user_id: user_id,
-                    shopping_list_id: shopping_list_id
-
+                    shopping_list_id: shopping_list_id,
+                    is_deleted: 0
                 }
             })
 
             if (getCartDetails) {
                 getCartDetails = JSON.parse(JSON.stringify(getCartDetails))
                 let user_orders_id = uuidv4()
-                let user_order_number = await generateRandomCode()
+                let user_order_number = await generateProductHexCode()
                 let user_order_date = created_datetime,
                     user_due_date = moment().add(7, 'days').unix()
                 let orderObj = {
@@ -253,7 +264,7 @@ class ShoppingController {
                 }
 
                 let createOrderData = await dbReader.userOrders.create(orderObj)
-                // craete order items...
+                // Create order items...
                 if (createOrderData) {
                     let orderItemsArr = []
                     let n = 0
@@ -266,7 +277,7 @@ class ShoppingController {
                             product_id: getCartDetails.wm_shopping_list_items[n].product_id,
                             qty: getCartDetails.wm_shopping_list_items[n].qty,
                             text_amount: 0,
-                            total_amount: parseFloat(getCartDetails.wm_shopping_list_items[n].wm_product.price * getCartDetails.wm_shopping_list_items[n].qty),
+                            total_amount: parseFloat(getCartDetails.wm_shopping_list_items[n].wm_product.rrr_price * getCartDetails.wm_shopping_list_items[n].qty),
                             created_datetime: created_datetime,
                             updated_datetime: updated_datetime,
                         }
@@ -285,6 +296,38 @@ class ShoppingController {
                                 user_id, user_id
                             }
                         })
+                        // ! remove from shopping cart
+                        if (getCartDetails) {
+                            let n = 0
+                            while (n < getCartDetails.wm_shopping_list_items.length) {
+                                if (getCartDetails.wm_shopping_list_items[n].shopping_list_id === shopping_list_id) {
+                                    await dbWriter.shoppingListItems.update({
+                                        is_deleted: 1,
+                                        updated_datetime: updated_datetime
+                                    },
+                                        {
+                                            where: {
+                                                shopping_list_id: shopping_list_id,
+                                                shopping_list_item_id: getCartDetails.wm_shopping_list_items[n].shopping_list_item_id,
+                                                user_id: user_id,
+                                                is_deleted: 0,
+                                            }
+                                        })
+                                }
+                                n++
+                            }
+
+                            await dbWriter.shoppingList.update({
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    shopping_list_id: shopping_list_id,
+                                    user_id: user_id,
+                                    is_deleted: 0
+                                }
+                            })
+                        }
 
                     }
                 } else {
@@ -314,25 +357,19 @@ class ShoppingController {
                     include: [{
                         model: dbReader.product,
                         include: [
-                            // {
-                            //     model: dbReader.productCategory
-                            // }, {
-                            //     model: dbReader.productSubCategory
-                            // },
                             {
                                 model: dbReader.productPhotos
                             }],
                     }]
                 }],
                 where: {
-                    user_id: user_id
+                    user_id: user_id,
+                    is_deleted: 0
                 }
             })
 
             if (!_.isEmpty(getOrderData)) {
                 getOrderData = JSON.parse(JSON.stringify(getOrderData))
-            } else {
-                throw new Error("No data found.")
             }
 
             return new SuccessResponse("User order data.", getOrderData).send(
@@ -352,21 +389,16 @@ class ShoppingController {
                     model: dbReader.userOrdersItems,
                     include: [{
                         model: dbReader.product,
-                        include: [
-                            // {
-                            //     model: dbReader.productCategory
-                            // }, {
-                            //     model: dbReader.productSubCategory
-                            // },
-                            {
-                                model: dbReader.productPhotos
-                            }],
+                        include: [{
+                            model: dbReader.productPhotos
+                        }],
                     }]
                 }],
                 where: {
                     order_status: {
-                        [Op.notIn] : [0]
-                    }
+                        [Op.notIn]: [0]
+                    },
+                    is_deleted: 0
                 }
             })
 
@@ -391,6 +423,9 @@ class ShoppingController {
             let getOrderData = await dbReader.userOrders.findAndCountAll({
                 include: [{
                     model: dbReader.userOrdersItems,
+                    where: {
+                        is_deleted: 0
+                    },
                     include: [{
                         model: dbReader.product,
                         include: [
@@ -405,7 +440,8 @@ class ShoppingController {
                     }]
                 }],
                 where: {
-                    order_status: 0
+                    order_status: 0,
+                    is_deleted: 0
                 }
             })
 
@@ -443,6 +479,7 @@ class ShoppingController {
             let validateOrder = await dbReader.userOrders.findOne({
                 where: {
                     user_orders_id: user_orders_id,
+                    is_deleted: 0
                 }
             })
             if (_.isEmpty(validateOrder)) {
@@ -457,6 +494,7 @@ class ShoppingController {
                     }, {
                         where: {
                             user_orders_id: user_orders_id,
+                            is_deleted: 0
                         }
                     })
                     break;
@@ -467,6 +505,7 @@ class ShoppingController {
                     }, {
                         where: {
                             user_orders_id: user_orders_id,
+                            is_deleted: 0
                         }
                     })
                     break;
@@ -477,6 +516,7 @@ class ShoppingController {
                     }, {
                         where: {
                             user_orders_id: user_orders_id,
+                            is_deleted: 0
                         }
                     })
                     break;
@@ -487,6 +527,7 @@ class ShoppingController {
                     }, {
                         where: {
                             user_orders_id: user_orders_id,
+                            is_deleted: 0
                         }
                     })
                     break;
@@ -520,6 +561,7 @@ class ShoppingController {
             let validateOrder = await dbReader.userOrders.findOne({
                 where: {
                     user_orders_id: user_orders_id,
+                    is_deleted: 0
                 }
             })
             if (_.isEmpty(validateOrder)) {
@@ -534,6 +576,7 @@ class ShoppingController {
                     }, {
                         where: {
                             user_orders_id: user_orders_id,
+                            is_deleted: 0,
                             order_status: {
                                 [Op.in]: [0, 2]
                             }
@@ -547,6 +590,7 @@ class ShoppingController {
                     }, {
                         where: {
                             user_orders_id: user_orders_id,
+                            is_deleted: 0,
                             order_status: {
                                 [Op.in]: [0, 2]
                             }
@@ -565,6 +609,45 @@ class ShoppingController {
             ApiError.handle(new BadRequestError(e.message), res);
         }
     }
+
+    // ? Admin => get order details...
+    getOrderDetails = async (req, res) => {
+        try {
+            let { id } = req.params
+            let user_orders_id = id
+            let getOrderData = await dbReader.userOrders.findOne({
+                include: [{
+                    model: dbReader.userOrdersItems,
+                    include: [{
+                        model: dbReader.product,
+                        include: [{
+                            model: dbReader.productPhotos
+                        }],
+                    }]
+                }],
+                where: {
+                    user_orders_id: user_orders_id,
+                    order_status: {
+                        [Op.notIn]: [0]
+                    },
+                    is_deleted: 0
+                }
+            })
+
+            if (!_.isEmpty(getOrderData)) {
+                getOrderData = JSON.parse(JSON.stringify(getOrderData))
+            } else {
+                throw new Error("No data found.")
+            }
+
+            return new SuccessResponse("Fetch order details.", getOrderData).send(
+                res
+            );
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
 
 }
 

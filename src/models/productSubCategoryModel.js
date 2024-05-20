@@ -33,6 +33,11 @@ module.exports = function (sequelize, DataTypes) {
     //   foreignKey: "user_id",
     //   targetKey: "user_id"
     // });
+
+    wm_product_subcategory.belongsTo(models.product, {
+      foreignKey: "product_category_id",
+      targetKey: "product_category_id"
+    });
   };
 
   return wm_product_subcategory;

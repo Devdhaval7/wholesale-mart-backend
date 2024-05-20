@@ -11,12 +11,17 @@ class ProductRoute extends ProductController {
     }
     route(router) {
         router.post("/listProducts", tokenValidate, validator(jois.listProductsPayload), this.listProducts);
-        router.post("/addProduct", tokenValidate, validator(jois.addProductPayload), this.addProduct);
+        router.post("/addProduct", tokenValidate, this.addProduct);            // * validator(jois.addProductPayload),
+        router.get("/getProductDetails/:id", tokenValidate, this.getProductDetails);
         router.put("/editProduct/:id", tokenValidate, validator(jois.editProductPayload), this.editProduct);
-        router.post("/addProductCategory", tokenValidate, this.addProductCategory);
-        router.put("/updateProductCategory", tokenValidate, this.updateProductCategory);
-        router.get("/listProductCategory", tokenValidate, this.listProductCategory);
-        router.delete("/deleteProductCategory", tokenValidate, this.deleteProductCategory);
+        router.delete("/deleteProduct/:id", tokenValidate, this.deleteProduct);
+
+        // ? Product Category....
+
+        router.post("/admin/addProductCategory", tokenValidate, this.addProductCategory);
+        router.put("/admin/updateProductCategory", tokenValidate, this.updateProductCategory);
+        router.get("/admin/listProductCategory", tokenValidate, this.listProductCategory);
+        router.post("/admin/deleteProductCategory", tokenValidate, this.deleteProductCategory);
 
     }
 }

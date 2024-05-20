@@ -163,10 +163,11 @@ class CRMController {
                             [SearchCondition]: SearchData
                         }
                     }),
-                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`status`'),{
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`status`'), {
                         [Op.in]: [1, 2]
                     }),
                     dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`user_role`'), 0),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_deleted`'), 0),
                 ),
                 order: sortJoin,
                 limit: row_limit,
@@ -176,6 +177,92 @@ class CRMController {
                 res
             );
 
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+    // ? Change user status...
+    changeUserStatus = async (req, res) => {
+        try {
+            let { id } = req.params
+            let { status } = req.body;
+            let user_id = id
+
+            /**
+             * status
+             * 1. active
+             * 2. block
+             * 3. delete user permanently
+             */
+
+            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+
+            if ([1, 2].includes(req.user.user_role)) {
+                let validateUser = await dbReader.users.findOne({
+                    where: {
+                        user_id: user_id,
+                        is_deleted: 0
+                    }
+                })
+
+                if (validateUser) {
+                    validateUser = JSON.parse(JSON.stringify(validateUser))
+
+                    switch (status) {
+                        case 1:
+                            await dbWriter.users.update({
+                                status: 1,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    user_id: user_id,
+                                    is_deleted: 0
+                                }
+                            });
+                            break;
+                        case 2:
+                            await dbWriter.users.update({
+                                status: 2,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    user_id: user_id,
+                                    is_deleted: 0
+                                }
+                            });
+                            break;
+                        case 3:
+                            await dbWriter.users.update({
+                                status: 1,
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime
+                            }, {
+                                where: {
+                                    user_id: user_id,
+                                    is_deleted: 0
+                                }
+                            });
+                            break;
+
+                        default:
+                            throw new Error("Something went wrong.")
+                            break;
+                    }
+
+
+                } else {
+                    throw new Error('Data not found.')
+                }
+            } else {
+                throw new Error('insufficient permission.')
+            }
+
+            return new SuccessResponse("User status updated successfully.", {}).send(
+                res
+            );
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
         }

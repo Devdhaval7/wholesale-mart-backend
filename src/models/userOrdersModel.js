@@ -9,13 +9,14 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
         unique: true
       },
-      user_order_number: DataTypes.STRING(255), // HAX code 6 character
+      user_order_number: DataTypes.STRING(255), // ? HAX code 6 character
       user_id: DataTypes.STRING(50),
       total_amount: DataTypes.DECIMAL(10, 2),
       user_order_date: DataTypes.STRING(255),
       user_due_date: DataTypes.STRING(255),
-      order_status: DataTypes.INTEGER, // ? Default: 0. requested , 1: accepted/processing, 2: rejected, 3: dispatch, 4:deliverd.
+      order_status: DataTypes.INTEGER, // ? Default: 0. requested , 1: accepted/processing, 2: rejected, 3: dispatch, 4:delivered.
       payment_status: DataTypes.INTEGER, // ? Default: 0. due , 1: paid 
+      is_deleted: DataTypes.TINYINT(1),
       created_datetime: DataTypes.STRING(255),
       updated_datetime: DataTypes.STRING(255)
     },

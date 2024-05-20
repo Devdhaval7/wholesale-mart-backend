@@ -15,6 +15,7 @@ module.exports = function (sequelize, DataTypes) {
       qty: DataTypes.INTEGER,
       text_amount: DataTypes.DECIMAL(10, 2),
       total_amount: DataTypes.DECIMAL(10, 2),
+      is_deleted: DataTypes.TINYINT(1),
       created_datetime: DataTypes.STRING(255),
       updated_datetime: DataTypes.STRING(255)
     },

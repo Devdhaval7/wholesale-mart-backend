@@ -15,7 +15,7 @@ class AuthRoute extends AuthController {
         router.post("/admin/register", this.adminRegister);
         router.post("/admin/login", validator(jois.adminLoginPayload), this.adminLogin);
         router.post("/admin/fetchAdminProfile", tokenValidate, this.fetchAdminProfile)
-        router.put("/admin/updateAdminProfile", tokenValidate, this.updateAdminProfile);
+        router.put("/admin/updateAdminProfile", tokenValidate, this.updateAdminProfile); // postImage
 
         // ? user routes
         router.post("/signUp", validator(jois.registrationPayload), this.signUp);
