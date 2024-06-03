@@ -16,24 +16,48 @@ class TaskController {
   // ? Create Leads / Task...
   addTask = async (req, res) => {
     try {
-      let { title, task_description, user_id } = req.body;
+      let { title, task_description, user_id, type, clientArr } = req.body;
       let task_id = uuidv4()
-
       let unixTimestamp = Math.floor(new Date().getTime() / 1000);
       let created_datetime = JSON.stringify(unixTimestamp),
         updated_datetime = JSON.stringify(unixTimestamp);
 
-      let createTask = await dbWriter.tasks.create({
-        task_id: task_id,
-        user_id: user_id,
-        title: title,
-        task_description: task_description,
-        status: 0,
-        created_datetime: created_datetime,
-        updated_datetime: updated_datetime
-      });
+      switch (type) {
+        case 0:
+          // ? Normal task
+          await dbWriter.tasks.create({
+            task_id: task_id,
+            user_id: user_id,
+            title: title,
+            task_description: task_description,
+            type: 0,
+            status: 0,
+            created_datetime: created_datetime,
+            updated_datetime: updated_datetime
+          });
+          break;
 
-      return new SuccessResponse("Task assign to sub-admin successfully.", createTask).send(
+        case 1:
+          // ? Client through task
+          clientArr = JSON.stringify(clientArr)
+          await dbWriter.tasks.create({
+            task_id: task_id,
+            user_id: user_id,
+            title: title,
+            task_description: task_description,
+            customer_list: clientArr,
+            type: 1,
+            status: 0,
+            created_datetime: created_datetime,
+            updated_datetime: updated_datetime
+          });
+
+          break;
+
+        default:
+          break;
+      }
+      return new SuccessResponse("Task assign to sub-admin successfully.", {}).send(
         res
       );
     } catch (e) {
@@ -44,7 +68,6 @@ class TaskController {
   // ? List tasks | leads
   listAllTask = async (req, res) => {
     try {
-
       let user_role = req.user.user_role
       let { page_record, page_no, search, sort_field, sort_order } = req.body
       /**
@@ -72,14 +95,19 @@ class TaskController {
         SearchData = "%" + search + "%";
       }
 
-      //Sorting by name
+      //Sorting by name or email
       var sortField = "created_datetime",
         sortOrder = "DESC";
+      // var sortField = 'name', sortOrder = 'ASC';
       var sortJoin = [[sortField, sortOrder]];
       sortOrder = sort_order;
 
       if (sort_field == "title") {
         sortJoin = [dbReader.Sequelize.literal("title"), sortOrder];
+      } else if (sort_field == "name") {
+        sortJoin = [dbReader.Sequelize.literal('`wm_user`.`name`'), sortOrder];
+      } else if (sort_field == "status") {
+        sortJoin = [dbReader.Sequelize.literal("status"), sortOrder];
       }
 
       let getTasks
@@ -89,13 +117,16 @@ class TaskController {
             model: dbReader.users
           }],
           where: dbReader.Sequelize.and(
-            dbReader.Sequelize.or({
-              title: {
-                [SearchCondition]: SearchData
-              }
-            }),
+            dbReader.Sequelize.or(
+              dbReader.Sequelize.where(dbReader.Sequelize.col('`title`'), { [SearchCondition]: SearchData }),
+              dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user`.`name`'), { [SearchCondition]: SearchData }),
+            ),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`type`'), 0),
             dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`is_deleted`'), 0),
           ),
+          order: [sortJoin],
+          limit: row_limit,
+          offset: row_offset
         })
       }
       if (user_role === 2) {
@@ -107,10 +138,11 @@ class TaskController {
                 [SearchCondition]: SearchData
               }
             }),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`type`'), 0),
             dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`is_deleted`'), 0),
             dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`user_id`'), _user_id),
           ),
-          order: sortJoin,
+          order: [sortJoin],
           limit: row_limit,
           offset: row_offset
         })
@@ -176,7 +208,7 @@ class TaskController {
   editTask = async (req, res) => {
     try {
       let { id } = req.params
-      let { title, task_description, user_id, status } = req.body;
+      let { title, task_description, user_id, type, clientArr } = req.body;
 
       let unixTimestamp = Math.floor(new Date().getTime() / 1000);
       let created_datetime = JSON.stringify(unixTimestamp),
@@ -192,19 +224,43 @@ class TaskController {
         })
 
         if (validateTask) {
-          await dbWriter.tasks.update({
-            user_id: user_id,
-            title: title,
-            task_description: task_description,
-            status: status,
-            created_datetime: created_datetime,
-            updated_datetime: updated_datetime
-          }, {
-            where: {
-              task_id: id,
-              is_deleted: 0
-            }
-          });
+          switch (type) {
+            case 0:
+              await dbWriter.tasks.update({
+                user_id: user_id,
+                title: title,
+                task_description: task_description,
+                created_datetime: created_datetime,
+                updated_datetime: updated_datetime
+              }, {
+                where: {
+                  task_id: id,
+                  is_deleted: 0
+                }
+              });
+              break;
+            case 1:
+              clientArr = JSON.stringify(clientArr)
+              await dbWriter.tasks.update({
+                user_id: user_id,
+                title: title,
+                task_description: task_description,
+                customer_list: clientArr,
+                created_datetime: created_datetime,
+                updated_datetime: updated_datetime
+              }, {
+                where: {
+                  task_id: id,
+                  is_deleted: 0
+                }
+              });
+              break;
+
+            default:
+              break;
+          }
+
+
         } else {
           throw new Error('Data not found.')
         }
@@ -299,6 +355,163 @@ class TaskController {
       }
 
       return new SuccessResponse("Task deleted successfully.", {}).send(
+        res
+      );
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // ? Change task status...
+  changeTaskStatus = async (req, res) => {
+    try {
+      let { task_id, status } = req.body
+      let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+      let created_datetime = JSON.stringify(unixTimestamp),
+        updated_datetime = JSON.stringify(unixTimestamp);
+
+      let validateTask = await dbReader.tasks.findOne({
+        where: {
+          task_id: task_id,
+          is_deleted: 0
+        }
+      })
+
+      if (validateTask) {
+        await dbWriter.tasks.update({
+          status: status,
+          updated_datetime: updated_datetime
+        }, {
+          where: {
+            task_id: task_id,
+            is_deleted: 0
+          }
+        });
+      } else {
+        throw new Error('Data not found.')
+      }
+
+      return new SuccessResponse("Task status updated successfully.", {}).send(res);
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // * Client through task...
+
+  // ? Get customer list...
+  getClintLists = async (req, res) => {
+    try {
+      let data = await dbReader.users.findAll({
+        // attributes: ['user_id', 'name', 'profile_image'],
+        include: [{
+          model: dbReader.userProfile
+        }],
+        where: {
+          is_deleted: 0,
+          user_role: 0,
+          status: 1
+        }
+      })
+
+      if (data) {
+        data = JSON.parse(JSON.stringify(data))
+      }
+      return new SuccessResponse("Customer list.", data).send(
+        res
+      );
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // ? List client through tasks | leads
+  listClientTask = async (req, res) => {
+    try {
+      let user_role = req.user.user_role
+      let { page_record, page_no, search, sort_field, sort_order } = req.body
+      /**
+       * user_role
+       * 1. admin all access
+       * 2. sub admin
+       */
+      var row_offset = 0,
+        row_limit = 10;
+
+      //Pagination
+      if (page_record) {
+        row_limit = parseInt(page_record);
+      }
+
+      if (page_no) {
+        row_offset = page_no * page_record - page_record;
+      }
+
+      // Searching data by ingredient_name
+      var SearchCondition = dbReader.Sequelize.Op.ne,
+        SearchData = null;
+      if (search) {
+        SearchCondition = dbReader.Sequelize.Op.like;
+        SearchData = "%" + search + "%";
+      }
+
+      //Sorting by name or email
+      var sortField = "created_datetime",
+        sortOrder = "DESC";
+      // var sortField = 'name', sortOrder = 'ASC';
+      var sortJoin = [[sortField, sortOrder]];
+      sortOrder = sort_order;
+
+      if (sort_field == "title") {
+        sortJoin = [dbReader.Sequelize.literal("title"), sortOrder];
+      } else if (sort_field == "name") {
+        sortJoin = [dbReader.Sequelize.literal('`wm_user`.`name`'), sortOrder];
+      } else if (sort_field == "status") {
+        sortJoin = [dbReader.Sequelize.literal("status"), sortOrder];
+      }
+
+      let getTasks
+      if (user_role === 1) {
+        getTasks = await dbReader.tasks.findAndCountAll({
+          include: [{
+            model: dbReader.users
+          }],
+          where: dbReader.Sequelize.and(
+            dbReader.Sequelize.or(
+              dbReader.Sequelize.where(dbReader.Sequelize.col('`title`'), { [SearchCondition]: SearchData }),
+              dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user`.`name`'), { [SearchCondition]: SearchData }),
+            ),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`type`'), 1),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`is_deleted`'), 0),
+          ),
+          order: [sortJoin],
+          limit: row_limit,
+          offset: row_offset
+        })
+      }
+      if (user_role === 2) {
+        let _user_id = req.user.user_id
+        getTasks = await dbReader.tasks.findAndCountAll({
+          where: dbReader.Sequelize.and(
+            dbReader.Sequelize.or({
+              title: {
+                [SearchCondition]: SearchData
+              }
+            }),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`is_deleted`'), 0),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`type`'), 1),
+            dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_tasks`.`user_id`'), _user_id),
+          ),
+          order: [sortJoin],
+          limit: row_limit,
+          offset: row_offset
+        })
+      }
+
+      if (getTasks) {
+        getTasks = JSON.parse(JSON.stringify(getTasks))
+      }
+      return new SuccessResponse("Client Task lists.", getTasks).send(
         res
       );
     } catch (e) {

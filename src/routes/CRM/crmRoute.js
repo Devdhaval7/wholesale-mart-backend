@@ -9,10 +9,11 @@ class CRMRoute extends CRMController {
         this.route(router)
     }
     route(router) {
-        router.get('/admin/listAllPendingRequests', tokenValidate, this.listAllPendingRequests)
+        router.post('/admin/listAllPendingRequests', tokenValidate, this.listAllPendingRequests)
         router.put('/admin/requestAction', tokenValidate, validator(jois.requestActionPayload), this.requestAction)
         router.post('/admin/listAllCustomers', tokenValidate, this.listAllCustomers)
-        router.put('/admin/changeUserStatus/:id', tokenValidate, this.changeUserStatus)
+        router.post('/admin/changeUserStatus', tokenValidate, this.changeUserStatus)
+        router.post('/admin/addNewCustomer', tokenValidate, this.addNewCustomer)
     }
 }
 

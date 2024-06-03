@@ -4,27 +4,19 @@ const nodemailer = require('nodemailer');
 const ejs = require("ejs");
 const Path = require("path");
 
-async function generateRandomCode(length = 12) {
-    const charset = '0123456789';
-    let randomCode = '';
-
-    while (randomCode.length < length) {
-        const randomIndex = Math.floor(Math.random() * charset.length);
-        randomCode += charset[randomIndex];
-    }
-
-    return randomCode;
+async function generateProductHexCode(maxLength = 8) {
+    const buffer = crypto.randomBytes(Math.ceil(maxLength / 2));
+    const hexCode = buffer.toString('hex').slice(0, maxLength);
+    return hexCode.toUpperCase(); // Optionally convert to uppercase
 }
 
-async function generateProductHexCode(minLength = 6, maxLength = 10) {
-    const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
-    const buffer = crypto.randomBytes(Math.ceil(length / 2));
-    const hexCode = buffer.toString('hex').slice(0, length);
+async function generateUserHexCode(maxLength = 8) {
+    const buffer = crypto.randomBytes(Math.ceil(maxLength / 2));
+    const hexCode = buffer.toString('hex').slice(0, maxLength);
     return hexCode.toUpperCase(); // Optionally convert to uppercase
 }
 
 // send mail for sub admin credentials...
-
 async function sendMail(data) {
     // ? Creating transport
     let transport = nodemailer.createTransport({
@@ -80,7 +72,7 @@ async function sendMail(data) {
 }
 
 module.exports = {
-    generateRandomCode,
     generateProductHexCode,
+    generateUserHexCode,
     sendMail
 }

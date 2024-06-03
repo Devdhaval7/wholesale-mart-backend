@@ -1,16 +1,14 @@
-require("dotenv").config();
-const { NextFunction, Request, response } = require("express");
 const { SuccessResponse, BadRequestError, ApiError } = require("../core/index");
 const { dbReader, dbWriter } = require("../models/dbconfig");
 const { Op } = dbReader.Sequelize;
 const { v4: uuidv4 } = require("uuid");
-const _ = require("lodash");
 const bcrypt = require("bcrypt");
+const _ = require("lodash");
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const jwt_secret = process.env.SECRET_KEY;
 const moment = require("moment");
-const { sendMail } = require("../helpers/general");
+const { sendMail, generateUserHexCode } = require("../helpers/general");
 
 class AuthController {
 
@@ -19,7 +17,7 @@ class AuthController {
     try {
       let { name, email, password } = req.body;
       let user_id = uuidv4();
-      let user_role = 1;
+      let user_role = 1, user_password = password;
 
       let userDetails = await dbReader.users.findOne({
         where: {
@@ -45,11 +43,14 @@ class AuthController {
           updated_datetime = JSON.stringify(unixTimestamp);
 
         let access_token = jwt.sign(data, jwt_secret);
+        let user_code = await generateUserHexCode()
         let userDB = await dbWriter.users.create({
           user_id,
+          user_code,
           name,
           email,
           password,
+          user_password,
           user_role,
           access_token,
           status,
@@ -166,7 +167,7 @@ class AuthController {
 
       let user_id = uuidv4();
       let user_role = 0,
-        status = 0; // requested
+        status = 0, user_password = password;
       let userDetails = await dbReader.users.findOne({
         where: {
           email: email,
@@ -191,11 +192,14 @@ class AuthController {
           updated_datetime = JSON.stringify(unixTimestamp);
 
         let access_token = jwt.sign(data, jwt_secret);
+        let user_code = await generateUserHexCode()
         let userDB = await dbWriter.users.create({
           user_id,
+          user_code,
           name,
           email,
           password,
+          user_password,
           user_role,
           access_token,
           status,
@@ -482,11 +486,11 @@ class AuthController {
   // Add new admin
   addAdmin = async (req, res) => {
     try {
-      let { name, email, password, permission_id } = req.body;
-      permission_id = JSON.stringify(permission_id);
+      let { name, email, password, role } = req.body; // permission_id
+      // permission_id = JSON.stringify(permission_id);
       let user_id = uuidv4();
       let user_role = 2;
-      let _mailPassword = password;
+      let _mailPassword = password, user_password = password;
       let userData = await dbReader.users.findOne({
         where: {
           email: email,
@@ -507,11 +511,15 @@ class AuthController {
         var unixTimestamp = Math.floor(new Date().getTime() / 1000);
         let created_datetime = JSON.stringify(unixTimestamp),
           updated_datetime = JSON.stringify(unixTimestamp);
+        let user_code = await generateUserHexCode()
         let userData = await dbWriter.users.create({
           user_id,
+          user_code,
           name,
           email,
           password,
+          user_password,
+          role,
           user_role,
           created_datetime,
           updated_datetime
@@ -522,7 +530,9 @@ class AuthController {
           delete userData.is_deleted;
           let admin_permission_id = uuidv4();
           let user_profile_id = uuidv4();
-          let adminProfiledata = await dbWriter.userProfile.create({
+          let arr = []
+          let permission_id = JSON.stringify(arr)
+          let adminProfileData = await dbWriter.userProfile.create({
             user_profile_id: user_profile_id,
             user_id: user_id,
             created_datetime: created_datetime,
@@ -536,7 +546,7 @@ class AuthController {
             updated_datetime
           });
           userData.permission = PermissionsData;
-          userData.userProfile = adminProfiledata;
+          userData.userProfile = adminProfileData;
 
           // send mail
           let _mailOBJ = {
@@ -555,17 +565,53 @@ class AuthController {
     }
   };
 
+  // ? Update sub-admin permission...
+  updateAdminPermissions = async (req, res) => {
+    try {
+      let { user_id, permission_id } = req.body;
+      permission_id = JSON.stringify(permission_id);
+      var unixTimestamp = Math.floor(new Date().getTime() / 1000);
+      let created_datetime = JSON.stringify(unixTimestamp),
+        updated_datetime = JSON.stringify(unixTimestamp);
+      let userData = await dbReader.users.findOne({
+        where: {
+          user_id: user_id,
+          is_deleted: 0
+        }
+      });
+      if (_.isEmpty(userData)) {
+        ApiError.handle(new BadRequestError("User Not found."), res);
+      } else {
+        if (userData) {
+          userData = JSON.parse(JSON.stringify(userData));
+          await dbWriter.adminPermissions.update({
+            permission_id,
+            updated_datetime
+          }, {
+            where: {
+              user_id: user_id,
+            }
+          });
+          return new SuccessResponse("Admin permission has been updated successfully.", {}).send(
+            res
+          );
+        }
+      }
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
   //Edit detail of admin
   editAdmin = async (req, res) => {
     try {
-      let { user_id, name, email, permission_id } = req.body;
-      permission_id = JSON.stringify(permission_id);
-
+      let { user_id, name, email, role } = req.body;
       var unixTimestamp = Math.floor(new Date().getTime() / 1000);
       let updated_datetime = JSON.stringify(unixTimestamp);
       let userData = await dbWriter.users.update(
         {
           name,
+          role,
           email,
           updated_datetime
         },
@@ -575,18 +621,6 @@ class AuthController {
           }
         }
       );
-      let PermissionsData = await dbWriter.adminPermissions.update(
-        {
-          permission_id,
-          updated_datetime
-        },
-        {
-          where: {
-            user_id: user_id
-          }
-        }
-      );
-
       return new SuccessResponse("Admin has been updated successfully.", {}).send(
         res
       );
@@ -595,7 +629,7 @@ class AuthController {
     }
   };
 
-  // List all admin detail
+  // List all admin detail -> sub admin
   listAdmin = async (req, res) => {
     try {
       var { page_record, page_no, search, sort_field, sort_order } = req.body;
@@ -639,11 +673,10 @@ class AuthController {
             model: dbReader.users,
             // attributes: ["name", "email"],
             where: dbReader.Sequelize.and(
-              dbReader.Sequelize.or({
-                name: {
-                  [SearchCondition]: SearchData
-                }
-              }),
+              dbReader.Sequelize.or(
+                dbReader.Sequelize.where(dbReader.Sequelize.col('`name`'), { [SearchCondition]: SearchData }),
+                dbReader.Sequelize.where(dbReader.Sequelize.col('`email`'), { [SearchCondition]: SearchData }),
+              ),
               dbReader.Sequelize.where(dbReader.Sequelize.col('`is_deleted`'), 0),
               dbReader.Sequelize.where(dbReader.Sequelize.col('`user_role`'), 2),
             )
@@ -654,11 +687,10 @@ class AuthController {
         offset: row_offset
       });
       admin = JSON.parse(JSON.stringify(admin));
-
       let permissionD,
         permissionArray = [];
       admin.rows.forEach((element) => {
-        if (element.permission_id.length) {
+        if (element.permission_id && element.permission_id.length) {
           permissionArray.push({
             permission_id: JSON.parse(element.permission_id),
             user_id: element.user_id
@@ -667,6 +699,8 @@ class AuthController {
         permissionD = JSON.parse(element.permission_id);
         element.name = element.wm_user.name;
         element.email = element.wm_user.email;
+        element.password = element.wm_user.password;
+        element.role = element.wm_user.role;
         element.permission_id = JSON.parse(element.permission_id);
         delete element.vb_user;
       });
@@ -781,6 +815,62 @@ class AuthController {
 
 
 
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // ? change admin status...
+  changeAdminStatus = async (req, res) => {
+    try {
+      let { user_id, status } = req.body
+      let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+      let created_datetime = JSON.stringify(unixTimestamp),
+        updated_datetime = JSON.stringify(unixTimestamp);
+      /**
+       * status
+       * 1. Active
+       * 2. De-active
+       */
+      let _validateUser = await dbReader.users.findOne({
+        where: {
+          user_id: user_id,
+          is_deleted: 0
+        }
+      })
+
+      if (!_validateUser) {
+        throw new Error("User does not exist.")
+      }
+
+      switch (status) {
+        case 1:
+          await dbWriter.users.update({
+            status: 1,
+            updated_datetime: updated_datetime
+          }, {
+            where: {
+              user_id: user_id,
+              is_deleted: 0
+            }
+          })
+          break;
+        case 2:
+          await dbWriter.users.update({
+            status: 2,
+            updated_datetime: updated_datetime
+          }, {
+            where: {
+              user_id: user_id,
+              is_deleted: 0
+            }
+          })
+          break;
+        default:
+          throw new Error("Something went wrong.")
+          break;
+      }
+      return new SuccessResponse("User status updated successfully.", {}).send(res);
     } catch (e) {
       ApiError.handle(new BadRequestError(e.message), res);
     }

@@ -29,14 +29,15 @@ class AuthRoute extends AuthController {
         router.post("/admin/addPemission", tokenValidate, validator(jois.addPermissionPayload), this.addPemission);
         router.post("/admin/listAdmin", tokenValidate, validator(jois.listAdminPayload), this.listAdmin);
         router.post("/admin/addAdmin", tokenValidate, validator(jois.addAdminPayload), this.addAdmin);
+        router.post("/admin/updateAdminPermissions", tokenValidate, this.updateAdminPermissions);
+        
         router.put("/admin/editAdmin", tokenValidate, validator(jois.editAdminPayload), this.editAdmin);
         router.post("/admin/deleteAdmin", tokenValidate, validator(jois.deleteAdminPayload), this.deleteAdmin); // ValidationSource.QUERY
+        router.post("/admin/changeAdminStatus", tokenValidate, this.changeAdminStatus);
 
         router.get("/admin/listPermission", tokenValidate, this.listPermission)
         router.post("/admin/listPendingAccountRequests", tokenValidate, this.listPendingAccountRequests)
         router.post("/admin/deletePermission/:id", tokenValidate, this.deletePermission)
-        // router.get("/getAdmin", tokenValidate, validator(jois.getAdminPayload, ValidationSource.QUERY), this.getAdmin); 
-        // router.post("/updateAdminProfile", tokenValidate, validator(jois.updateAdminProfilePayload), this.updateAdminProfile);
 
         // router.put("/resetPassword", validator(jois.resetPasswordPayload), this.resetPassword);
         // router.put("/adminResetPassword/:temp_key?", validator(jois.adminResetPasswordPayload, ValidationSource.PARAM), this.adminResetPassword);

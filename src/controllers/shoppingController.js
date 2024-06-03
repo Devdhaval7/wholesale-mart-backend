@@ -2,13 +2,13 @@ const { ApiError, BadRequestError, SuccessResponse } = require("../core");
 const { dbReader, dbWriter } = require("../models/dbconfig");
 const _ = require("lodash");
 const { v4: uuidv4 } = require("uuid");
-const { generateRandomCode, generateProductHexCode } = require("../helpers/general");
+const { generateProductHexCode } = require("../helpers/general");
 const moment = require('moment')
 const { Op } = dbReader.Sequelize;
 
 class ShoppingController {
 
-    // ? get Uuser cart | shopping list...
+    // ? get User cart | shopping list...
     getShoppingList = async (req, res) => {
         try {
             let user_id = req.user.user_id
@@ -53,7 +53,6 @@ class ShoppingController {
         try {
 
             let { product_id, qty } = req.body
-
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
@@ -64,9 +63,6 @@ class ShoppingController {
             let getCartDetails = await dbReader.shoppingList.findOne({
                 include: [{
                     model: dbReader.shoppingListItems,
-                    // where: {
-                    //     is_deleted: 0
-                    // },
                     include: [{
                         model: dbReader.product,
                         include: [{
@@ -227,6 +223,23 @@ class ShoppingController {
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
             let user_id = req.user.user_id
+            // ? Validation for user can place order or not.
+            let validateUser = await dbReader.users.findOne({
+                include: [{
+                    model: dbReader.userProfile
+                }],
+                where: {
+                    user_id: user_id,
+                    is_deleted: 0
+                }
+            })
+
+            if (!_.isEmpty(validateUser)) {
+                if (!validateUser.wm_user_profile.gst_number) {
+                    throw new Error("Before placing orders, please update your profile as the company information is lacking.")
+                }
+            }
+
             let getCartDetails = await dbReader.shoppingList.findOne({
                 include: [{
                     model: dbReader.shoppingListItems,
@@ -384,22 +397,68 @@ class ShoppingController {
     // ? Admin => get All orders...
     getAllOrders = async (req, res) => {
         try {
+            var { page_record, page_no, search, sort_field, sort_order } = req.body;
+            var row_offset = 0,
+                row_limit = 10;
+
+            //Pagination
+            if (page_record) {
+                row_limit = parseInt(page_record);
+            }
+
+            if (page_no) {
+                row_offset = page_no * page_record - page_record;
+            }
+
+            // Searching data by ingredient_name
+            var SearchCondition = dbReader.Sequelize.Op.ne,
+                SearchData = null;
+            if (search) {
+                SearchCondition = dbReader.Sequelize.Op.like;
+                SearchData = "%" + search + "%";
+            }
+
+            //Sorting by name or email
+            var sortField = "created_datetime",
+                sortOrder = "DESC";
+            // var sortField = 'name', sortOrder = 'ASC';
+            var sortJoin = [[sortField, sortOrder]];
+            sortOrder = sort_order;
+
+            if (sort_field == "total_amount") {
+                sortJoin = [dbReader.Sequelize.literal('`wm_user_orders`.`total_amount`'), sortOrder];
+            } else if (sort_field == "order_status") {
+                sortJoin = [dbReader.Sequelize.literal('`wm_user_orders`.`order_status`'), sortOrder];
+            } else if (sort_field == "payment_status") {
+                sortJoin = [dbReader.Sequelize.literal('`wm_user_orders`.`payment_status`'), sortOrder];
+            }
+
             let getOrderData = await dbReader.userOrders.findAndCountAll({
-                include: [{
-                    model: dbReader.userOrdersItems,
-                    include: [{
-                        model: dbReader.product,
+                include: [
+                    // {
+                    //     model: dbReader.users,
+                    // },
+                    {
+                        model: dbReader.userOrdersItems,
                         include: [{
-                            model: dbReader.productPhotos
-                        }],
-                    }]
-                }],
-                where: {
-                    order_status: {
-                        [Op.notIn]: [0]
-                    },
-                    is_deleted: 0
-                }
+                            model: dbReader.product,
+                            include: [{
+                                model: dbReader.productPhotos
+                            }],
+                        }]
+                    }],
+                where: dbReader.Sequelize.and(
+                    dbReader.Sequelize.or(
+                        // dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user`.`name`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`user_order_number`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`total_amount`'), { [SearchCondition]: SearchData }),
+                    ),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`order_status`'), { [Op.notIn]: [0] }),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`is_deleted`'), 0),
+                ),
+                order: [sortJoin],
+                limit: row_limit,
+                offset: row_offset
             })
 
             if (!_.isEmpty(getOrderData)) {
@@ -420,6 +479,43 @@ class ShoppingController {
     // ? Admin => get new order requests...
     getOrderRequests = async (req, res) => {
         try {
+
+            var { page_record, page_no, search, sort_field, sort_order } = req.body;
+            var row_offset = 0,
+                row_limit = 10;
+
+            //Pagination
+            if (page_record) {
+                row_limit = parseInt(page_record);
+            }
+
+            if (page_no) {
+                row_offset = page_no * page_record - page_record;
+            }
+
+            // Searching data by ingredient_name
+            var SearchCondition = dbReader.Sequelize.Op.ne,
+                SearchData = null;
+            if (search) {
+                SearchCondition = dbReader.Sequelize.Op.like;
+                SearchData = "%" + search + "%";
+            }
+
+            //Sorting by name or email
+            var sortField = "created_datetime",
+                sortOrder = "DESC";
+            // var sortField = 'name', sortOrder = 'ASC';
+            var sortJoin = [[sortField, sortOrder]];
+            sortOrder = sort_order;
+
+            if (sort_field == "total_amount") {
+                sortJoin = [dbReader.Sequelize.literal('`wm_user_orders`.`total_amount`'), sortOrder];
+            } else if (sort_field == "order_status") {
+                sortJoin = [dbReader.Sequelize.literal('`wm_user_orders`.`order_status`'), sortOrder];
+            } else if (sort_field == "payment_status") {
+                sortJoin = [dbReader.Sequelize.literal('`wm_user_orders`.`payment_status`'), sortOrder];
+            }
+
             let getOrderData = await dbReader.userOrders.findAndCountAll({
                 include: [{
                     model: dbReader.userOrdersItems,
@@ -428,21 +524,23 @@ class ShoppingController {
                     },
                     include: [{
                         model: dbReader.product,
-                        include: [
-                            // {
-                            //     model: dbReader.productCategory
-                            // }, {
-                            //     model: dbReader.productSubCategory
-                            // },
-                            {
-                                model: dbReader.productPhotos
-                            }],
+                        include: [{
+                            model: dbReader.productPhotos
+                        }],
                     }]
                 }],
-                where: {
-                    order_status: 0,
-                    is_deleted: 0
-                }
+                where: dbReader.Sequelize.and(
+                    dbReader.Sequelize.or(
+                        // dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user`.`name`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`user_order_number`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`total_amount`'), { [SearchCondition]: SearchData }),
+                    ),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`order_status`'), 0),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`is_deleted`'), 0),
+                ),
+                order: [sortJoin],
+                limit: row_limit,
+                offset: row_offset
             })
 
             if (!_.isEmpty(getOrderData)) {
@@ -644,6 +742,63 @@ class ShoppingController {
                 res
             );
 
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+    // ? Admin => change order status and payment status...
+    changeOrderStatus = async (req, res) => {
+        try {
+            let { user_orders_id, status, action } = req.body
+            /**
+             * * action
+             * 1. order_status
+             * 2. payment_status
+             * 
+             * * status
+             *  order_status =>  1: accepted/processing, 2: rejected, 3: dispatch, 4:delivered.	
+             *  order_status =>  0: due , 1: paid
+             * 
+             */
+            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+            let getOrderData = await dbReader.userOrders.findOne({
+                where: {
+                    user_orders_id: user_orders_id,
+                    is_deleted: 0
+                }
+            })
+            if (!_.isEmpty(getOrderData)) {
+                getOrderData = JSON.parse(JSON.stringify(getOrderData))
+                if (action === "order_status") {
+                    await dbWriter.userOrders.update({
+                        order_status: status,
+                        updated_datetime: updated_datetime
+                    }, {
+                        where: {
+                            user_orders_id: user_orders_id,
+                            is_deleted: 0
+                        }
+                    })
+                } else if (action === "payment_status") {
+                    await dbWriter.userOrders.update({
+                        payment_status: status,
+                        updated_datetime: updated_datetime
+                    }, {
+                        where: {
+                            user_orders_id: user_orders_id,
+                            is_deleted: 0
+                        }
+                    })
+                } else {
+                    throw new Error("something went wrong.")
+                }
+            } else {
+                throw new Error("No data found.")
+            }
+            return new SuccessResponse("Fetch order details.", getOrderData).send(res);
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
         }

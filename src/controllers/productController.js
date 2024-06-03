@@ -18,7 +18,7 @@ class ProductController {
     listProducts = async (req, res) => {
         try {
             let user_role = req.user.user_role
-            var { page_record, page_no, search, sort_field, sort_order } = req.body;
+            var { page_record, page_no, search, filter_by, sort_field, sort_order } = req.body;
             var row_offset = 0,
                 row_limit = 10;
 
@@ -48,10 +48,24 @@ class ProductController {
 
             if (sort_field == "product_name") {
                 sortJoin = [dbReader.Sequelize.literal("product_name"), sortOrder];
-            } else if (sort_field == "price") {
-                sortJoin = [dbReader.Sequelize.literal("price"), sortOrder];
+            } else if (sort_field == "stock") {
+                sortJoin = [dbReader.Sequelize.literal("stock"), sortOrder];
+            } else if (sort_field == "unit_price") {
+                sortJoin = [dbReader.Sequelize.literal("unit_price"), sortOrder];
+            } else if (sort_field == "cost_price") {
+                sortJoin = [dbReader.Sequelize.literal("cost_price"), sortOrder];
+            } else if (sort_field == "rrr_price") {
+                sortJoin = [dbReader.Sequelize.literal("rrr_price"), sortOrder];
+            } else if (sort_field == "status") {
+                sortJoin = [dbReader.Sequelize.literal("status"), sortOrder];
             }
 
+            // filter...
+            if (filter_by == "pricelow") {
+                sortJoin = [dbReader.Sequelize.literal("rrr_price"), "ASC"];
+            } else if (filter_by == "pricehigh") {
+                sortJoin = [dbReader.Sequelize.literal("rrr_price"), "DESC"];
+            }
 
             let whereCondition
 
@@ -75,7 +89,6 @@ class ProductController {
                     dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`is_deleted`'), 0)
                 )
             }
-
 
             let getAllProducts = await dbReader.product.findAndCountAll({
                 include: [{
@@ -301,7 +314,6 @@ class ProductController {
     // ? Edit products...
     editProduct = async (req, res) => {
         try {
-
             let { id } = req.params
             let {
                 product_category_id, product_subcategory_id, product_name, product_description,
@@ -428,7 +440,16 @@ class ProductController {
             if (_.isEmpty(_validateProduct)) {
                 throw new Error("Data not found.")
             } else {
-                // ! NOTE => check product is already been order or not....
+                // ! NOTE => check product is already been order or not...
+                let _validateProductToCart = await dbReader.userOrdersItems.findOne({
+                    where: {
+                        product_id: product_id,
+                        is_deleted: 0
+                    }
+                })
+                if (!_.isEmpty(_validateProductToCart)) {
+                    throw new Error("Customers have already purchased this item, so it cannot be deleted.")
+                }
 
                 await dbWriter.product.update({
                     status: 0,
@@ -450,9 +471,9 @@ class ProductController {
         }
     }
 
-    // * Product Category...     ----------------------------------
+    // * Product Category...
 
-    // ? Add product category
+    // ? Add product category...
     addProductCategory = async (req, res) => {
         try {
             let { category_name, image_url, subcategoryArr } = req.body
@@ -470,7 +491,7 @@ class ProductController {
             })
 
             if (!_.isEmpty(_validateProductCategory)) {
-                throw new Error("Sorry, Same named product category is alraedy exist.")
+                throw new Error("Sorry, Same named product category is already exist.")
             }
 
             let createProductCategory = await dbWriter.productCategory.create({
@@ -500,7 +521,7 @@ class ProductController {
                 }
             }
 
-            return new SuccessResponse("Product category addedd successfully.", createProductCategory).send(
+            return new SuccessResponse("Product category added successfully.", createProductCategory).send(
                 res
             );
 
@@ -509,16 +530,13 @@ class ProductController {
         }
     }
 
-    // ? Product Category...
-
-    // ? Update product category
+    // ? Update product category...
     updateProductCategory = async (req, res) => {
         try {
             let { category_name, product_category_id, image_url, subcategoryArr } = req.body
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
-
             // validate product category
             let _validateProductCategory = await dbReader.productCategory.findOne({
                 where: {
@@ -526,64 +544,81 @@ class ProductController {
                     is_deleted: 0
                 }
             })
-
-            // if (!_.isEmpty(_validateProductCategory)) {
-            //     throw new Error("Sorry, Same named product category is already exist.")
-            // }
-
-            await dbWriter.productCategory.update({
-                category_name: category_name,
-                image_url: image_url,
-                updated_datetime: updated_datetime,
-            }, {
+            if (!_.isEmpty(_validateProductCategory)) {
+                throw new Error("Sorry, Same named product category is already exist.")
+            }
+            // validate product category
+            let ProductCategory = await dbReader.productCategory.findOne({
+                include: [{
+                    model: dbReader.productSubCategory
+                }],
                 where: {
                     product_category_id: product_category_id,
                     is_deleted: 0
                 }
             })
 
-            // sub category
-            if (subcategoryArr.length > 0) {
-                let n = 0
-                while (n < subcategoryArr.length) {
-                    if (subcategoryArr[n].product_subcategory_id) {
-                        await dbWriter.productSubCategory.update({
-                            subcategory_name: subcategoryArr[n].subcategory_name,
-                            // image_url: subcategoryArr[n].subcategory_name,
-                            image_url: subcategoryArr[n].subcategory_name,
-                            updated_datetime: updated_datetime,
-                        }, {
-                            where: {
-                                product_subcategory_id: subcategoryArr[n].product_subcategory_id,
-                                is_deleted: 0
-                            }
-                        })
-                    } else {
-                        let product_subcategory_id = uuidv4()
-                        await dbWriter.productSubCategory.create({
-                            product_subcategory_id: product_subcategory_id,
-                            product_category_id: product_category_id,
-                            subcategory_name: subcategoryArr[n].subcategory_name,
-                            image_url: subcategoryArr[n].image_url,
-                            is_deleted: 0,
-                            created_datetime: created_datetime,
-                        })
+            if (ProductCategory) {
+                ProductCategory = JSON.parse(JSON.stringify(ProductCategory))
+                let _productSubCategories = ProductCategory.wm_product_subcategories.map(i => i.product_subcategory_id)
+                await dbWriter.productCategory.update({
+                    category_name: category_name,
+                    image_url: image_url,
+                    updated_datetime: updated_datetime,
+                }, {
+                    where: {
+                        product_category_id: product_category_id,
+                        is_deleted: 0
                     }
-
-                    n++
+                })
+                // sub category
+                if (subcategoryArr.length > 0) {
+                    let n = 0
+                    while (n < subcategoryArr.length) {
+                        if (_productSubCategories.includes(subcategoryArr[n].product_subcategory_id)) {
+                            await dbWriter.productSubCategory.update({
+                                subcategory_name: subcategoryArr[n].subcategory_name,
+                                // image_url: subcategoryArr[n].subcategory_name,
+                                image_url: subcategoryArr[n].subcategory_name,
+                                updated_datetime: updated_datetime,
+                            }, {
+                                where: {
+                                    product_subcategory_id: subcategoryArr[n].product_subcategory_id,
+                                    is_deleted: 0
+                                }
+                            })
+                        } else if (subcategoryArr[n].product_subcategory_id == "0") {
+                            let product_subcategory_id = uuidv4()
+                            await dbWriter.productSubCategory.create({
+                                product_subcategory_id: product_subcategory_id,
+                                product_category_id: product_category_id,
+                                subcategory_name: subcategoryArr[n].subcategory_name,
+                                image_url: subcategoryArr[n].image_url,
+                                is_deleted: 0,
+                                created_datetime: created_datetime,
+                            })
+                        } else {
+                            await dbWriter.productSubCategory.update({
+                                is_deleted: 1
+                            }, {
+                                where: {
+                                    product_subcategory_id: subcategoryArr[n].product_subcategory_id,
+                                    is_deleted: 0
+                                }
+                            })
+                        }
+                        n++
+                    }
                 }
             }
-
-            return new SuccessResponse("Product category updated successfully.", {}).send(
-                res
-            );
+            return new SuccessResponse("Product category updated successfully.", {}).send(res);
 
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
         }
     }
 
-    // ? List product category
+    // ? List product category...
     listProductCategory = async (req, res) => {
         try {
             let getAllProductsCategory = await dbReader.productCategory.findAll({
@@ -613,7 +648,7 @@ class ProductController {
         }
     };
 
-    // ? Delete product category
+    // ? Delete product category...
     deleteProductCategory = async (req, res) => {
         try {
 
@@ -632,7 +667,10 @@ class ProductController {
                     let _getCategory = await dbReader.productCategory.findOne({
                         include: [{
                             required: false,
-                            model: dbReader.product
+                            model: dbReader.product,
+                            where: {
+                                is_deleted: 0
+                            }
                         }],
                         where: {
                             product_category_id: category_id,
@@ -673,7 +711,10 @@ class ProductController {
                     let _getSubCategory = await dbReader.productSubCategory.findOne({
                         include: [{
                             required: false,
-                            model: dbReader.product
+                            model: dbReader.product,
+                            where: {
+                                is_deleted: 0
+                            }
                         }],
                         where: {
                             product_subcategory_id: category_id,
@@ -712,6 +753,72 @@ class ProductController {
             );
 
 
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+    // ? Change Product status...
+    changeProductStatus = async (req, res) => {
+        try {
+            let { product_id, status } = req.body
+            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+            /**
+             * status
+             * 1. Active
+             * 2. De-active
+             */
+            let _validateProduct = await dbReader.product.findOne({
+                where: {
+                    product_id: product_id,
+                    is_deleted: 0
+                }
+            })
+
+            if (!_.isEmpty(_validateProduct)) {
+                throw new Error("Product does not exist.")
+            }
+
+            switch (status) {
+                case 1:
+                    await dbWriter.product.update({
+                        status: 1,
+                        updated_datetime: updated_datetime
+                    }, {
+                        where: {
+                            product_id: product_id,
+                            is_deleted: 0
+                        }
+                    })
+                    break;
+                case 2:
+                    let _validateProductToCart = await dbReader.userOrdersItems.findOne({
+                        where: {
+                            product_id: product_id,
+                            is_deleted: 0
+                        }
+                    })
+                    if (!_.isEmpty(_validateProductToCart)) {
+                        throw new Error("Customers have already purchased this item, so it cannot be de-activate.")
+                    }
+
+                    await dbWriter.product.update({
+                        status: 2,
+                        updated_datetime: updated_datetime
+                    }, {
+                        where: {
+                            product_id: product_id,
+                            is_deleted: 0
+                        }
+                    })
+                    break;
+                default:
+                    throw new Error("Something went wrong.")
+                    break;
+            }
+            return new SuccessResponse("Product status updated successfully.", {}).send(res);
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
         }

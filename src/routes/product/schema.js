@@ -8,6 +8,7 @@ exports.jois = {
     page_record: Joi.number().optional(),
     page_no: Joi.number().optional(),
     search: Joi.string().optional().allow(null, ""),
+    filter_by: Joi.string().optional().allow(null, ""),
     sort_field: Joi.string().optional().allow(null, ""),
     sort_order: Joi.string().optional().allow(null, "")
   }),

@@ -22,6 +22,7 @@ class ProductRoute extends ProductController {
         router.put("/admin/updateProductCategory", tokenValidate, this.updateProductCategory);
         router.get("/admin/listProductCategory", tokenValidate, this.listProductCategory);
         router.post("/admin/deleteProductCategory", tokenValidate, this.deleteProductCategory);
+        router.post("/admin/changeProductStatus", tokenValidate, this.changeProductStatus);
 
     }
 }

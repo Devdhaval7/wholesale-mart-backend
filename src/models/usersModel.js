@@ -9,10 +9,13 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
         unique: true
       },
+      user_code: DataTypes.STRING(255),
       name: DataTypes.STRING(255),
       email: DataTypes.STRING(50),
-      password: DataTypes.STRING(500),
+      password: DataTypes.STRING(255),
+      user_password: DataTypes.STRING(255),
       profile_image: DataTypes.BLOB("medium"),
+      role: DataTypes.STRING(255),
       user_role: DataTypes.INTEGER, // ? 0. normal user, 1. admin, 2. sub admin
       access_token: DataTypes.STRING(500),
       status: DataTypes.INTEGER, // ? Default: 0 Not Active [requested] , 1: Active, 2:Blocked.

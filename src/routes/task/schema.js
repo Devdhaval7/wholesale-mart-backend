@@ -8,8 +8,17 @@ exports.jois = {
     title: Joi.string().required(),
     task_description: Joi.string().required(),
     user_id: Joi.string().required(),
+    type: Joi.number().required(),
+    clientArr: Joi.array().optional().allow(null, ""),
   }),
   listAllTaskPayload: Joi.object().keys({
+    page_record: Joi.number().optional(),
+    page_no: Joi.number().optional(),
+    search: Joi.string().optional().allow(null, ""),
+    sort_field: Joi.string().optional().allow(null, ""),
+    sort_order: Joi.string().optional().allow(null, "")
+  }),
+  listClientTaskPayload: Joi.object().keys({
     page_record: Joi.number().optional(),
     page_no: Joi.number().optional(),
     search: Joi.string().optional().allow(null, ""),
@@ -20,7 +29,9 @@ exports.jois = {
     title: Joi.string().required(),
     task_description: Joi.string().required(),
     user_id: Joi.string().required(),
-    status: Joi.number().required(),
+    type: Joi.number().required(),
+    clientArr: Joi.array().optional().allow(null, ""),
+
   }),
 
 };

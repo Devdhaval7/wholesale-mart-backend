@@ -1,8 +1,83 @@
 const { ApiError, BadRequestError, SuccessResponse } = require("../core");
 const { dbReader, dbWriter } = require("../models/dbconfig");
 const { Op } = dbReader.Sequelize;
+const { v4: uuidv4 } = require("uuid");
 const _ = require("lodash");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+const jwt = require("jsonwebtoken");
+const jwt_secret = process.env.SECRET_KEY;
+const moment = require("moment");
+const { generateUserHexCode } = require("../helpers/general");
 class CRMController {
+
+    // ? List all customers
+    listAllCustomers = async (req, res) => {
+        try {
+            var { page_record, page_no, search, sort_field, sort_order } = req.body;
+            var row_offset = 0,
+                row_limit = 10;
+
+            //Pagination
+            if (page_record) {
+                row_limit = parseInt(page_record);
+            }
+
+            if (page_no) {
+                row_offset = page_no * page_record - page_record;
+            }
+
+            // Searching data by ingredient_name
+            var SearchCondition = dbReader.Sequelize.Op.ne,
+                SearchData = null;
+            if (search) {
+                SearchCondition = dbReader.Sequelize.Op.like;
+                SearchData = "%" + search + "%";
+            }
+
+            //Sorting by name or email
+            var sortField = "created_datetime",
+                sortOrder = "DESC";
+            // var sortField = 'name', sortOrder = 'ASC';
+            var sortJoin = [[sortField, sortOrder]];
+            sortOrder = sort_order;
+
+            if (sort_field == "name") {
+                sortJoin = [dbReader.Sequelize.literal("name"), sortOrder];
+            } else if (sort_field == "email") {
+                sortJoin = [dbReader.Sequelize.literal("email"), sortOrder];
+            } else if (sort_field == "status") {
+                sortJoin = [dbReader.Sequelize.literal("status"), sortOrder];
+            }
+
+            let _data = await dbReader.users.findAndCountAll({
+                include: [{
+                    model: dbReader.userProfile
+                }],
+                where: dbReader.Sequelize.and(
+                    dbReader.Sequelize.or(
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`name`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`email`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_profile`.`city`'), { [SearchCondition]: SearchData }),
+                    ),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`status`'), {
+                        [Op.in]: [1, 2]
+                    }),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`user_role`'), 0),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_deleted`'), 0),
+                ),
+                order: [sortJoin],
+                limit: row_limit,
+                offset: row_offset
+            });
+            return new SuccessResponse("Fetch all users.", _data).send(
+                res
+            );
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
 
     // ? Pending new account requests list...
     listAllPendingRequests = async (req, res) => {
@@ -37,18 +112,20 @@ class CRMController {
 
             if (sort_field == "name") {
                 sortJoin = [dbReader.Sequelize.literal("name"), sortOrder];
+            } else if (sort_field == "email") {
+                sortJoin = [dbReader.Sequelize.literal("email"), sortOrder];
             }
-            let _data = await dbReader.users.findAll({
+
+            let _data = await dbReader.users.findAndCountAll({
                 where: dbReader.Sequelize.and(
-                    dbReader.Sequelize.or({
-                        name: {
-                            [SearchCondition]: SearchData
-                        }
-                    }),
+                    dbReader.Sequelize.or(
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`name`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`email`'), { [SearchCondition]: SearchData }),
+                    ),
                     dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`status`'), 0),
                     dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`user_role`'), 0),
                 ),
-                order: sortJoin,
+                order: [sortJoin],
                 limit: row_limit,
                 offset: row_offset
             });
@@ -122,73 +199,10 @@ class CRMController {
         }
     }
 
-    // ? List all customers
-    listAllCustomers = async (req, res) => {
-        try {
-            var { page_record, page_no, search, sort_field, sort_order } = req.body;
-            var row_offset = 0,
-                row_limit = 10;
-
-            //Pagination
-            if (page_record) {
-                row_limit = parseInt(page_record);
-            }
-
-            if (page_no) {
-                row_offset = page_no * page_record - page_record;
-            }
-
-            // Searching data by ingredient_name
-            var SearchCondition = dbReader.Sequelize.Op.ne,
-                SearchData = null;
-            if (search) {
-                SearchCondition = dbReader.Sequelize.Op.like;
-                SearchData = "%" + search + "%";
-            }
-
-            //Sorting by name or email
-            var sortField = "created_datetime",
-                sortOrder = "DESC";
-            // var sortField = 'name', sortOrder = 'ASC';
-            var sortJoin = [[sortField, sortOrder]];
-            sortOrder = sort_order;
-
-            if (sort_field == "name") {
-                sortJoin = [dbReader.Sequelize.literal("name"), sortOrder];
-            }
-            let _data = await dbReader.users.findAll({
-                where: dbReader.Sequelize.and(
-                    dbReader.Sequelize.or({
-                        name: {
-                            [SearchCondition]: SearchData
-                        }
-                    }),
-                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`status`'), {
-                        [Op.in]: [1, 2]
-                    }),
-                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`user_role`'), 0),
-                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_deleted`'), 0),
-                ),
-                order: sortJoin,
-                limit: row_limit,
-                offset: row_offset
-            });
-            return new SuccessResponse("Fetch all users.", _data).send(
-                res
-            );
-
-        } catch (e) {
-            ApiError.handle(new BadRequestError(e.message), res);
-        }
-    };
-
     // ? Change user status...
     changeUserStatus = async (req, res) => {
         try {
-            let { id } = req.params
-            let { status } = req.body;
-            let user_id = id
-
+            let { user_id, status } = req.body;
             /**
              * status
              * 1. active
@@ -263,6 +277,89 @@ class CRMController {
             return new SuccessResponse("User status updated successfully.", {}).send(
                 res
             );
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+    // ? Add new customer...
+    addNewCustomer = async (req, res) => {
+        try {
+            let { name, email, password, company_name, address_main_line, city, state, postcode, country,
+                phone_number, landline_number, gst_number } = req.body;
+
+            let user_id = uuidv4();
+            let user_role = 0,
+                status = 1, user_password = password;
+            let userDetails = await dbReader.users.findOne({
+                where: {
+                    email: email,
+                    is_deleted: 0
+                }
+            });
+
+            if (!_.isEmpty(userDetails)) {
+                ApiError.handle(new BadRequestError("User already exists."), res);
+            } else {
+                let data = {
+                    user_id: user_id,
+                    user_role: user_role,
+                    email: email
+                };
+                let userData;
+                const salt = bcrypt.genSaltSync(saltRounds);
+                const hash = bcrypt.hashSync(password, salt);
+                password = hash;
+                var unixTimestamp = Math.floor(new Date().getTime() / 1000);
+                let created_datetime = JSON.stringify(unixTimestamp),
+                    updated_datetime = JSON.stringify(unixTimestamp);
+
+                // let access_token = jwt.sign(data, jwt_secret);
+                let user_code = await generateUserHexCode()
+                let userDB = await dbWriter.users.create({
+                    user_id,
+                    user_code,
+                    name,
+                    email,
+                    password,
+                    user_password,
+                    user_role,
+                    // access_token,
+                    status,
+                    created_datetime,
+                });
+                userDB = JSON.parse(JSON.stringify(userDB));
+                if (userDB) {
+                    let user_profile_id = uuidv4();
+
+                    let _userProfile = await dbWriter.userProfile.create({
+                        user_profile_id,
+                        user_id,
+                        company_name,
+                        address_main_line, city,
+                        state, postcode, country,
+                        phone_number, landline_number, gst_number,
+                        created_datetime,
+                    });
+                    if (_userProfile) {
+                        userData = await dbReader.users.findOne({
+                            where: {
+                                email: email,
+                                is_deleted: 0
+                            }
+                        });
+                    }
+                }
+
+                // * send mail
+                // let _mailOBJ = {
+                //     username: email,
+                //     password: _mailPassword,
+                // }
+                // await sendMail(_mailOBJ)
+
+                return new SuccessResponse("Customer added successfully", userData).send(res);
+            }
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
         }

@@ -23,6 +23,7 @@ class ShoppingRoute extends ShoppingController {
         router.post("/admin/orderRequestActions", tokenValidate, this.orderRequestActions);
         router.post("/admin/updatePaymentStatus", tokenValidate, this.updatePaymentStatus);
         router.get("/admin/getOrderDetails/:id", tokenValidate, this.getOrderDetails);
+        router.post("/admin/changeOrderStatus", tokenValidate, this.changeOrderStatus);
     }
 }
 

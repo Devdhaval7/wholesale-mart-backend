@@ -32,10 +32,10 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: "user_orders_id",
       sourceKey: "user_orders_id"
     });
-    // wm_user_orders.belongsTo(models.userProfile, {
-    //   foreignKey: "user_id",
-    //   targetKey: "user_id"
-    // });
+    wm_user_orders.belongsTo(models.users, {
+      foreignKey: "user_id",
+      targetKey: "user_id"
+    });
   };
 
   return wm_user_orders;

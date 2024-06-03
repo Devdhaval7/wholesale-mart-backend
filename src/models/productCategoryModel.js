@@ -23,7 +23,7 @@ module.exports = function (sequelize, DataTypes) {
   );
 
   wm_product_category.associate = function (models) {
-    wm_product_category.belongsTo(models.productSubCategory, {
+    wm_product_category.hasMany(models.productSubCategory, {
       foreignKey: "product_category_id",
       targetKey: "product_category_id"
     });

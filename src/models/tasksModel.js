@@ -12,6 +12,8 @@ module.exports = function (sequelize, DataTypes) {
       user_id: DataTypes.STRING(255),
       title: DataTypes.STRING(255),
       task_description: DataTypes.TEXT,
+      customer_list: DataTypes.STRING(255),
+      type: DataTypes.INTEGER, // ? Default: 0. Normal, 1: Client through task.
       status: DataTypes.INTEGER, // ? Default: 0. Active | Pending, 1: Finished.
       is_deleted: DataTypes.INTEGER,
       created_datetime: DataTypes.STRING(255),
