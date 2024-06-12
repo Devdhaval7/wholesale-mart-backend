@@ -31,6 +31,7 @@ exports.jois = {
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     permission_id: Joi.array().optional().allow(null, ""),
+    role: Joi.string().optional().allow(null, ""),
   }),
   listAdminPayload: Joi.object().keys({
     page_record: Joi.number().optional(),

@@ -64,6 +64,7 @@ class CRMController {
                         [Op.in]: [1, 2]
                     }),
                     dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`user_role`'), 0),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_crm_client`'), 0),
                     dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_deleted`'), 0),
                 ),
                 order: [sortJoin],
@@ -286,7 +287,7 @@ class CRMController {
     addNewCustomer = async (req, res) => {
         try {
             let { name, email, password, company_name, address_main_line, city, state, postcode, country,
-                phone_number, landline_number, gst_number } = req.body;
+                phone_number, landline_number, gst_number, is_crm_client } = req.body;
 
             let user_id = uuidv4();
             let user_role = 0,
@@ -297,16 +298,11 @@ class CRMController {
                     is_deleted: 0
                 }
             });
+            let userData;
 
             if (!_.isEmpty(userDetails)) {
                 ApiError.handle(new BadRequestError("User already exists."), res);
             } else {
-                let data = {
-                    user_id: user_id,
-                    user_role: user_role,
-                    email: email
-                };
-                let userData;
                 const salt = bcrypt.genSaltSync(saltRounds);
                 const hash = bcrypt.hashSync(password, salt);
                 password = hash;
@@ -316,6 +312,7 @@ class CRMController {
 
                 // let access_token = jwt.sign(data, jwt_secret);
                 let user_code = await generateUserHexCode()
+                is_crm_client == 0 ? 0 : 1
                 let userDB = await dbWriter.users.create({
                     user_id,
                     user_code,
@@ -324,7 +321,7 @@ class CRMController {
                     password,
                     user_password,
                     user_role,
-                    // access_token,
+                    is_crm_client,
                     status,
                     created_datetime,
                 });
@@ -364,6 +361,185 @@ class CRMController {
             ApiError.handle(new BadRequestError(e.message), res);
         }
     };
+
+    // ? update customer...
+    updateCustomer = async (req, res) => {
+        try {
+            let { user_id, name, email, password, company_name, address_main_line, city, state, postcode, country,
+                phone_number, landline_number, gst_number, is_crm_client } = req.body;
+            let user_role = 0,
+                status = 1, user_password = password;
+            let userDetails = await dbReader.users.findOne({
+                where: {
+                    email: email,
+                    is_deleted: 0
+                }
+            });
+            let userData;
+
+            if (!_.isEmpty(userDetails) && userDetails.user_id != user_id) {
+                ApiError.handle(new BadRequestError("User already exists."), res);
+            } else {
+                const salt = bcrypt.genSaltSync(saltRounds);
+                const hash = bcrypt.hashSync(password, salt);
+                password = hash;
+                var unixTimestamp = Math.floor(new Date().getTime() / 1000);
+                let created_datetime = JSON.stringify(unixTimestamp),
+                    updated_datetime = JSON.stringify(unixTimestamp);
+
+                is_crm_client == 0 ? 0 : 1
+
+                let userDB = await dbWriter.users.update({
+                    name,
+                    email,
+                    password,
+                    user_password,
+                    updated_datetime
+                }, {
+                    where: {
+                        user_id: user_id,
+                        is_deleted: 0
+                    }
+                })
+                if (userDB) {
+                    await dbWriter.userProfile.update({
+                        company_name,
+                        address_main_line, city,
+                        state, postcode, country,
+                        phone_number, landline_number, gst_number,
+                        updated_datetime
+                    }, {
+                        where: {
+                            user_id: user_id,
+                            is_deleted: 0
+                        }
+                    })
+                }
+
+                // * send mail
+                // let _mailOBJ = {
+                //     username: email,
+                //     password: _mailPassword,
+                // }
+                // await sendMail(_mailOBJ)
+
+                return new SuccessResponse("Customer updated successfully", userData).send(res);
+            }
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+    // ? List all client customers
+    listAllClientCustomers = async (req, res) => {
+        try {
+            var { page_record, page_no, search, sort_field, sort_order } = req.body;
+            var row_offset = 0,
+                row_limit = 10;
+
+            //Pagination
+            if (page_record) {
+                row_limit = parseInt(page_record);
+            }
+
+            if (page_no) {
+                row_offset = page_no * page_record - page_record;
+            }
+
+            // Searching data by ingredient_name
+            var SearchCondition = dbReader.Sequelize.Op.ne,
+                SearchData = null;
+            if (search) {
+                SearchCondition = dbReader.Sequelize.Op.like;
+                SearchData = "%" + search + "%";
+            }
+
+            //Sorting by name or email
+            var sortField = "created_datetime",
+                sortOrder = "DESC";
+            // var sortField = 'name', sortOrder = 'ASC';
+            var sortJoin = [[sortField, sortOrder]];
+            sortOrder = sort_order;
+
+            if (sort_field == "name") {
+                sortJoin = [dbReader.Sequelize.literal("name"), sortOrder];
+            } else if (sort_field == "email") {
+                sortJoin = [dbReader.Sequelize.literal("email"), sortOrder];
+            } else if (sort_field == "status") {
+                sortJoin = [dbReader.Sequelize.literal("status"), sortOrder];
+            }
+
+            let _data = await dbReader.users.findAndCountAll({
+                include: [{
+                    model: dbReader.userProfile
+                }],
+                where: dbReader.Sequelize.and(
+                    dbReader.Sequelize.or(
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`name`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`email`'), { [SearchCondition]: SearchData }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_profile`.`city`'), { [SearchCondition]: SearchData }),
+                    ),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`status`'), {
+                        [Op.in]: [1, 2]
+                    }),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`user_role`'), 0),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_crm_client`'), 1),
+                    dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_users`.`is_deleted`'), 0),
+                ),
+                order: [sortJoin],
+                limit: row_limit,
+                offset: row_offset
+            });
+            return new SuccessResponse("Fetch all users.", _data).send(
+                res
+            );
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    };
+
+
+    // ? Delete products...
+    deleteCustomer = async (req, res) => {
+        try {
+            let { id } = req.params
+            let user_id = id
+            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+
+            // validate user
+            let _validateUser = await dbReader.users.findOne({
+                where: {
+                    user_id: user_id,
+                    user_role: 0,
+                    is_deleted: 0
+                }
+            })
+
+            if (_.isEmpty(_validateUser)) {
+                throw new Error("Data not found.")
+            } else {
+                await dbWriter.users.update({
+                    is_deleted: 1
+                }, {
+                    where: {
+                        user_id: user_id,
+                        user_role: 0,
+                        is_deleted: 0
+                    }
+                })
+            }
+
+            return new SuccessResponse("Customer has been deleted successfully.", {}).send(
+                res
+            );
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
 
 }
 

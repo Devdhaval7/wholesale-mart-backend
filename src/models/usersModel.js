@@ -19,6 +19,7 @@ module.exports = function (sequelize, DataTypes) {
       user_role: DataTypes.INTEGER, // ? 0. normal user, 1. admin, 2. sub admin
       access_token: DataTypes.STRING(500),
       status: DataTypes.INTEGER, // ? Default: 0 Not Active [requested] , 1: Active, 2:Blocked.
+      is_crm_client: DataTypes.INTEGER, // ? Default: 0: normal customer, 1: client customer
       is_deleted: DataTypes.INTEGER,
       otp_code: DataTypes.INTEGER,
       otp_active: DataTypes.INTEGER,

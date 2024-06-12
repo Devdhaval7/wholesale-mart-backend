@@ -385,9 +385,7 @@ class ShoppingController {
                 getOrderData = JSON.parse(JSON.stringify(getOrderData))
             }
 
-            return new SuccessResponse("User order data.", getOrderData).send(
-                res
-            );
+            return new SuccessResponse("User order data.", getOrderData).send(res);
 
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
@@ -440,6 +438,7 @@ class ShoppingController {
                     // },
                     {
                         model: dbReader.userOrdersItems,
+                        where: { is_deleted: 0 },
                         include: [{
                             model: dbReader.product,
                             include: [{
@@ -716,6 +715,9 @@ class ShoppingController {
             let getOrderData = await dbReader.userOrders.findOne({
                 include: [{
                     model: dbReader.userOrdersItems,
+                    where : {
+                        is_deleted: 0
+                    },
                     include: [{
                         model: dbReader.product,
                         include: [{

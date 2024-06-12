@@ -410,6 +410,7 @@ class TaskController {
         where: {
           is_deleted: 0,
           user_role: 0,
+          is_crm_client: 1,
           status: 1
         }
       })

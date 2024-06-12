@@ -15,6 +15,7 @@ class ProductRoute extends ProductController {
         router.get("/getProductDetails/:id", tokenValidate, this.getProductDetails);
         router.put("/editProduct/:id", tokenValidate, validator(jois.editProductPayload), this.editProduct);
         router.delete("/deleteProduct/:id", tokenValidate, this.deleteProduct);
+        router.post("/admin/updateStock", tokenValidate, this.updateStock);
 
         // ? Product Category....
 

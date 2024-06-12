@@ -13,6 +13,7 @@ const ProductRoute = require("./routes/product/productRoute");
 const TaskRoute = require("./routes/task/taskRoute");
 const CRMRoutes = require("./routes/CRM/crmRoute");
 const ShoppingRoute = require("./routes/shopping/shoppingRoute");
+const OrderRoute = require("./routes/Orders/orderRoute");
 
 const swaggerRoute = require("./routes/swagger/swaggerRoute");
 
@@ -71,6 +72,7 @@ class App {
     new TaskRoute(this.router);
     new CRMRoutes(this.router);
     new ShoppingRoute(this.router);
+    new OrderRoute(this.router);
 
     //use router middleware
     this.app.use("/api", this.router);

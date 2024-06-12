@@ -471,6 +471,46 @@ class ProductController {
         }
     }
 
+    // ? update stock
+    updateStock= async (req, res) => {
+        try {
+            let { product_id,stock } = req.body
+            let unixTimestamp = Math.floor(new Date().getTime() / 1000);
+            let created_datetime = JSON.stringify(unixTimestamp),
+                updated_datetime = JSON.stringify(unixTimestamp);
+
+            // validate product
+            let _validateProduct = await dbReader.product.findOne({
+                where: {
+                    product_id: product_id,
+                    is_deleted: 0
+                }
+            })
+
+            if (_.isEmpty(_validateProduct)) {
+                throw new Error("Data not found.")
+            } else {
+               
+                await dbWriter.product.update({
+                    stock: stock,
+                    updated_datetime:updated_datetime
+                }, {
+                    where: {
+                        product_id: product_id,
+                        is_deleted: 0
+                    }
+                })
+            }
+
+            return new SuccessResponse("Product stock has been upadted successfully.", {}).send(
+                res
+            );
+
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
+
     // * Product Category...
 
     // ? Add product category...
@@ -544,7 +584,7 @@ class ProductController {
                     is_deleted: 0
                 }
             })
-            if (!_.isEmpty(_validateProductCategory)) {
+            if (!_.isEmpty(_validateProductCategory) && product_category_id != _validateProductCategory.product_category_id) {
                 throw new Error("Sorry, Same named product category is already exist.")
             }
             // validate product category
