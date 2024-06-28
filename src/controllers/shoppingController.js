@@ -226,7 +226,10 @@ class ShoppingController {
             // ? Validation for user can place order or not.
             let validateUser = await dbReader.users.findOne({
                 include: [{
-                    model: dbReader.userProfile
+                    model: dbReader.userProfile,
+                    where: {
+                        is_deleted: 0
+                    },
                 }],
                 where: {
                     user_id: user_id,
@@ -433,9 +436,18 @@ class ShoppingController {
 
             let getOrderData = await dbReader.userOrders.findAndCountAll({
                 include: [
-                    // {
-                    //     model: dbReader.users,
-                    // },
+                    {
+                        model: dbReader.users,
+                        where: {
+                            is_deleted: 0
+                        },
+                        include: [{
+                            model: dbReader.userProfile,
+                            where: {
+                                is_deleted: 0
+                            },
+                        }]
+                    },
                     {
                         model: dbReader.userOrdersItems,
                         where: { is_deleted: 0 },
@@ -714,8 +726,19 @@ class ShoppingController {
             let user_orders_id = id
             let getOrderData = await dbReader.userOrders.findOne({
                 include: [{
+                    model: dbReader.users,
+                    where: {
+                        is_deleted: 0
+                    },
+                    include: [{
+                        model: dbReader.userProfile,
+                        where: {
+                            is_deleted: 0
+                        },
+                    }]
+                }, {
                     model: dbReader.userOrdersItems,
-                    where : {
+                    where: {
                         is_deleted: 0
                     },
                     include: [{

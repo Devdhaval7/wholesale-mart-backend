@@ -71,21 +71,27 @@ class ProductController {
 
             if (user_role === 0) {
                 whereCondition = dbReader.Sequelize.and(
-                    dbReader.Sequelize.or({
-                        product_name: {
+                    dbReader.Sequelize.or(
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('product_name'), {
                             [SearchCondition]: SearchData
-                        }
-                    }),
+                        }),
+                        // dbReader.Sequelize.where(dbReader.Sequelize.col('product_code'), {
+                        //     [SearchCondition]: SearchData
+                        // })
+                    ),
                     dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`status`'), 1),
                     dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`is_deleted`'), 0)
                 )
             } else {
                 whereCondition = dbReader.Sequelize.and(
-                    dbReader.Sequelize.or({
-                        product_name: {
+                    dbReader.Sequelize.or(
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('product_name'), {
                             [SearchCondition]: SearchData
-                        }
-                    }),
+                        }),
+                        dbReader.Sequelize.where(dbReader.Sequelize.col('product_code'), {
+                            [SearchCondition]: SearchData
+                        })
+                    ),
                     dbReader.sequelize.where(dbReader.sequelize.col('`wm_products`.`is_deleted`'), 0)
                 )
             }
@@ -472,9 +478,9 @@ class ProductController {
     }
 
     // ? update stock
-    updateStock= async (req, res) => {
+    updateStock = async (req, res) => {
         try {
-            let { product_id,stock } = req.body
+            let { product_id, stock } = req.body
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
             let created_datetime = JSON.stringify(unixTimestamp),
                 updated_datetime = JSON.stringify(unixTimestamp);
@@ -490,10 +496,10 @@ class ProductController {
             if (_.isEmpty(_validateProduct)) {
                 throw new Error("Data not found.")
             } else {
-               
+
                 await dbWriter.product.update({
                     stock: stock,
-                    updated_datetime:updated_datetime
+                    updated_datetime: updated_datetime
                 }, {
                     where: {
                         product_id: product_id,
