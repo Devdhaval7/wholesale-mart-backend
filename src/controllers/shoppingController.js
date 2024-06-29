@@ -367,21 +367,34 @@ class ShoppingController {
     getMyOrders = async (req, res) => {
         try {
             let user_id = req.user.user_id
+            let whereCondition = dbReader.Sequelize.and(
+                dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`user_id`'), user_id),
+                dbReader.Sequelize.where(dbReader.Sequelize.col('`wm_user_orders`.`is_deleted`'), 0),
+            )
             let getOrderData = await dbReader.userOrders.findAll({
-                include: [{
-                    model: dbReader.userOrdersItems,
-                    include: [{
-                        model: dbReader.product,
-                        include: [
-                            {
-                                model: dbReader.productPhotos
-                            }],
-                    }]
-                }],
-                where: {
-                    user_id: user_id,
-                    is_deleted: 0
-                }
+                include: [
+                    {
+                        model: dbReader.users,
+                        where: {
+                            is_deleted: 0
+                        },
+                        include: [{
+                            model: dbReader.userProfile,
+                            where: {
+                                is_deleted: 0
+                            },
+                        }]
+                    }, {
+                        model: dbReader.userOrdersItems,
+                        include: [{
+                            model: dbReader.product,
+                            include: [
+                                {
+                                    model: dbReader.productPhotos
+                                }],
+                        }]
+                    }],
+                where: whereCondition
             })
 
             if (!_.isEmpty(getOrderData)) {

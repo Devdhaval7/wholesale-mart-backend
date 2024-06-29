@@ -819,11 +819,11 @@ class ProductController {
             let _validateProduct = await dbReader.product.findOne({
                 where: {
                     product_id: product_id,
-                    is_deleted: 0
+                    // is_deleted: 0
                 }
             })
 
-            if (!_.isEmpty(_validateProduct)) {
+            if (_.isEmpty(_validateProduct)) {
                 throw new Error("Product does not exist.")
             }
 
@@ -846,7 +846,8 @@ class ProductController {
                             is_deleted: 0
                         }
                     })
-                    if (!_.isEmpty(_validateProductToCart)) {
+                    _validateProductToCart = JSON.parse(JSON.stringify(_validateProductToCart))
+                    if (_validateProductToCart) {
                         throw new Error("Customers have already purchased this item, so it cannot be de-activate.")
                     }
 
