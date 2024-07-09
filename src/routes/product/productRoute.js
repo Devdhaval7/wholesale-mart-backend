@@ -3,6 +3,7 @@ const validator = require("../../helpers/validator");
 const ValidationSource = require("../../helpers/validator");
 const tokenValidate = require('../../middleware/tokenValidate');
 const { jois } = require('./schema');
+const { multerConfig } = require('../../middleware/multerConfig');
 
 class ProductRoute extends ProductController {
     constructor(router) {
@@ -11,7 +12,7 @@ class ProductRoute extends ProductController {
     }
     route(router) {
         router.post("/listProducts", tokenValidate, validator(jois.listProductsPayload), this.listProducts);
-        router.post("/addProduct", tokenValidate, this.addProduct);            // * validator(jois.addProductPayload),
+        router.post("/addProduct", tokenValidate,  this.addProduct);            // * validator(jois.addProductPayload), multerConfig.array('profile_image', 5),
         router.get("/getProductDetails/:id", tokenValidate, this.getProductDetails);
         router.put("/editProduct/:id", tokenValidate, validator(jois.editProductPayload), this.editProduct);
         router.delete("/deleteProduct/:id", tokenValidate, this.deleteProduct);

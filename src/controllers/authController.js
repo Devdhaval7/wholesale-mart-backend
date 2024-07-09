@@ -358,7 +358,11 @@ class AuthController {
 
       if (userProfile) {
         userProfile = JSON.parse(JSON.stringify(userProfile));
+        const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
 
+        // Construct data URI
+        const dataURI = `data:image/jpeg;base64,${base64Image}`;
+        userProfile.profile_image = dataURI
       } else {
         throw new Error("User not found");
       }
@@ -447,7 +451,11 @@ class AuthController {
 
       if (userProfile) {
         userProfile = JSON.parse(JSON.stringify(userProfile));
+        const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
 
+        // Construct data URI
+        const dataURI = `data:image/jpeg;base64,${base64Image}`;
+        userProfile.profile_image = dataURI
         let adminPermission = await dbReader.adminPermissions.findOne({
           where: {
             user_id: userProfile.user_id
@@ -968,7 +976,6 @@ class AuthController {
     try {
       let { name } = req.body;
       // Check if file was uploaded
-      const profile_image = req.file ? req.file.buffer : null;
       let user_id = req.user.user_id
       let userData = await dbReader.users.findOne({
         where: {
@@ -985,7 +992,6 @@ class AuthController {
         await dbReader.users.update(
           {
             name: name,
-            profile_image: profile_image
           },
           {
             where: {
@@ -1124,6 +1130,40 @@ class AuthController {
       return new SuccessResponse("Permission deleted.", {}).send(
         res
       );
+    } catch (e) {
+      ApiError.handle(new BadRequestError(e.message), res);
+    }
+  };
+
+  // update Avatar...
+  updateAvatar = async (req, res) => {
+    try {
+      const userId = req.body.user_id;
+      const profileImage = req.file.buffer;
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded!' });
+      }
+      // Update user profile image using Sequelize
+      const user = await dbWriter.users.findOne({
+        where: {
+          user_id: userId
+        }
+      });
+      console.log(user)
+      if (!user) {
+        return res.status(404).json({ error: 'User not found!' });
+      }
+
+      // Update profile image in the database 
+      await dbWriter.users.update({
+        profile_image: profileImage
+      }, {
+        where: {
+          user_id: userId
+        }
+      })
+
+      return new SuccessResponse("Avatar updated successfully.", {}).send(res);
     } catch (e) {
       ApiError.handle(new BadRequestError(e.message), res);
     }

@@ -2,6 +2,7 @@ const AuthController = require('../../controllers/authController');
 const validator = require("../../helpers/validator");
 const ValidationSource = require("../../helpers/validator");
 const tokenValidate = require('../../middleware/tokenValidate');
+const { upload } = require('../../middleware/middleware');
 const { jois } = require('./schema');
 
 class AuthRoute extends AuthController {
@@ -17,6 +18,8 @@ class AuthRoute extends AuthController {
         router.post("/admin/fetchAdminProfile", tokenValidate, this.fetchAdminProfile)
         router.put("/admin/updateAdminProfile", tokenValidate, this.updateAdminProfile); // postImage
 
+        router.post("/updateAvatar", tokenValidate, upload.single('profile_image'), this.updateAvatar); // postImage
+
         // ? user routes
         router.post("/signUp", validator(jois.registrationPayload), this.signUp);
         router.post("/signIn", validator(jois.loginPayload), this.signIn);
@@ -30,7 +33,7 @@ class AuthRoute extends AuthController {
         router.post("/admin/listAdmin", tokenValidate, validator(jois.listAdminPayload), this.listAdmin);
         router.post("/admin/addAdmin", tokenValidate, validator(jois.addAdminPayload), this.addAdmin);
         router.post("/admin/updateAdminPermissions", tokenValidate, this.updateAdminPermissions);
-        
+
         router.put("/admin/editAdmin", tokenValidate, validator(jois.editAdminPayload), this.editAdmin);
         router.post("/admin/deleteAdmin", tokenValidate, validator(jois.deleteAdminPayload), this.deleteAdmin); // ValidationSource.QUERY
         router.post("/admin/changeAdminStatus", tokenValidate, this.changeAdminStatus);

@@ -234,9 +234,23 @@ class ProductController {
     // ? Create products...
     addProduct = async (req, res) => {
         try {
+            let { name, combinations, profile_iamge } = req.body
+            // combinations = JSON.parse(combinations);
 
-            let { name, combinations } = req.body
+            // console.log('Uploaded Files:', JSON.parse(JSON.stringify(profile_iamge)));
 
+            // Process combinations and uploaded files  
+            // const productCombinations = JSON.parse(combinations).map((combination, index) => ({
+            //     attributes: combination.attributes,
+            //     description: combination.description,
+            //     profile_image: req.files[index].map(file => ({
+            //         path: file.originalname, // Store file name
+            //         contentType: file.mimetype, // Store MIME type
+            //         data: file.buffer.toString('base64') // Store image data as base64
+            //     }))
+            // }));
+            // console.log(productCombinations);
+            // return false
             // * validate product 
             // let _validateProduct = await dbReader.product.findOne({
             //     where: {
@@ -282,6 +296,7 @@ class ProductController {
                 let createProduct = await dbWriter.product.create(_obj)
                 if (createProduct) {
                     // * adding products images...
+
                     // if (combinations[n].product_images.length > 0) {
                     //     let formattedString = combinations[n].product_images.replace(/\[|\]|'/g, '');
                     //     let _product_images = formattedString.split(',');
@@ -819,11 +834,11 @@ class ProductController {
             let _validateProduct = await dbReader.product.findOne({
                 where: {
                     product_id: product_id,
-                    // is_deleted: 0
+                    is_deleted: 0
                 }
             })
 
-            if (_.isEmpty(_validateProduct)) {
+            if (!_.isEmpty(_validateProduct)) {
                 throw new Error("Product does not exist.")
             }
 
@@ -846,8 +861,7 @@ class ProductController {
                             is_deleted: 0
                         }
                     })
-                    _validateProductToCart = JSON.parse(JSON.stringify(_validateProductToCart))
-                    if (_validateProductToCart) {
+                    if (!_.isEmpty(_validateProductToCart)) {
                         throw new Error("Customers have already purchased this item, so it cannot be de-activate.")
                     }
 
