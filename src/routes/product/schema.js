@@ -40,7 +40,7 @@ exports.jois = {
     attribute_material: Joi.string().optional().allow(null, ""),
     attribute_shape: Joi.string().optional().allow(null, ""),
     attribute_size: Joi.string().optional().allow(null, ""),
-    product_images: Joi.string().optional().allow(null, ""),
+    photo_url: Joi.array().optional().allow(null, ""),
     status: Joi.number().required(),
   }),
 

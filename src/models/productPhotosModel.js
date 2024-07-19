@@ -10,7 +10,7 @@ module.exports = function (sequelize, DataTypes) {
         unique: true
       },
       product_id: DataTypes.STRING(500),
-      photo_url: DataTypes.BLOB("medium"),
+      photo_url: DataTypes.STRING(500),
       img_sort_order: DataTypes.INTEGER,
       is_deleted: DataTypes.INTEGER,
       created_datetime: DataTypes.STRING(255),

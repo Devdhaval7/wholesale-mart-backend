@@ -12,11 +12,12 @@ class ProductRoute extends ProductController {
     }
     route(router) {
         router.post("/listProducts", tokenValidate, validator(jois.listProductsPayload), this.listProducts);
-        router.post("/addProduct", tokenValidate,  this.addProduct);            // * validator(jois.addProductPayload), multerConfig.array('profile_image', 5),
+        router.post("/addProduct", tokenValidate, this.addProduct);            // * validator(jois.addProductPayload), multerConfig.array('profile_image', 5),
         router.get("/getProductDetails/:id", tokenValidate, this.getProductDetails);
         router.put("/editProduct/:id", tokenValidate, validator(jois.editProductPayload), this.editProduct);
         router.delete("/deleteProduct/:id", tokenValidate, this.deleteProduct);
         router.post("/admin/updateStock", tokenValidate, this.updateStock);
+        router.post("/admin/uploadeProductImage", multerConfig.single('image'), this.uploadeProductImage); // tokenValidate
 
         // ? Product Category....
 

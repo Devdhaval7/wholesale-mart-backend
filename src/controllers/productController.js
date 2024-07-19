@@ -13,6 +13,19 @@ const jwt_secret = process.env.SECRET_KEY;
 const moment = require("moment");
 const { generateProductHexCode } = require("../helpers/general");
 
+
+const admin = require('firebase-admin');
+
+// Initialize Firebase Admin SDK
+const serviceAccount = require('../helpers/serviceAccountKey.json');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'gs://wholesale-mart-001.appspot.com'
+});
+
+const bucket = admin.storage().bucket();
+
 class ProductController {
     // ? List all Products
     listProducts = async (req, res) => {
@@ -102,7 +115,12 @@ class ProductController {
                 }, {
                     model: dbReader.productSubCategory
                 }, {
-                    model: dbReader.productPhotos
+                    model: dbReader.productPhotos,
+                    order: [['img_sort_order', 'ASC']],
+                    limit: 1,
+                    where: {
+                        is_deleted: 0
+                    },
                 }],
                 where: whereCondition,
                 order: [sortJoin],
@@ -176,8 +194,14 @@ class ProductController {
                 }, {
                     model: dbReader.productSubCategory
                 }, {
-                    model: dbReader.productPhotos
+                    model: dbReader.productPhotos,
+                    // limit: 1,
+                    where: {
+                        is_deleted: 0
+                    },
                 }],
+
+                order: [[dbReader.Sequelize.col('`img_sort_order`'), 'ASC']],
                 where: {
                     product_id: product_id,
                     is_deleted: 0
@@ -234,23 +258,8 @@ class ProductController {
     // ? Create products...
     addProduct = async (req, res) => {
         try {
-            let { name, combinations, profile_iamge } = req.body
-            // combinations = JSON.parse(combinations);
+            let { name, combinations } = req.body
 
-            // console.log('Uploaded Files:', JSON.parse(JSON.stringify(profile_iamge)));
-
-            // Process combinations and uploaded files  
-            // const productCombinations = JSON.parse(combinations).map((combination, index) => ({
-            //     attributes: combination.attributes,
-            //     description: combination.description,
-            //     profile_image: req.files[index].map(file => ({
-            //         path: file.originalname, // Store file name
-            //         contentType: file.mimetype, // Store MIME type
-            //         data: file.buffer.toString('base64') // Store image data as base64
-            //     }))
-            // }));
-            // console.log(productCombinations);
-            // return false
             // * validate product 
             // let _validateProduct = await dbReader.product.findOne({
             //     where: {
@@ -276,7 +285,7 @@ class ProductController {
                     product_id: product_id,
                     product_code: product_code,
                     product_category_id: combinations[n].product_category_id,
-                    product_subcategory_id: combinations[n].product_subcategory_id,
+                    product_subcategory_id: combinations[n].product_subcategory_id || "",
                     product_name: name,
                     product_description: combinations[n].description,
                     product_variant: combinations[n].product_variant,
@@ -296,29 +305,24 @@ class ProductController {
                 let createProduct = await dbWriter.product.create(_obj)
                 if (createProduct) {
                     // * adding products images...
-
-                    // if (combinations[n].product_images.length > 0) {
-                    //     let formattedString = combinations[n].product_images.replace(/\[|\]|'/g, '');
-                    //     let _product_images = formattedString.split(',');
-                    //     if (_product_images.length > 0) {
-                    //         let n = 0, _img_sort_order = 1
-                    //         while (n < _product_images.length) {
-                    //             let product_photo_id = uuidv4()
-                    //             let _photo_url = _product_images[n]
-                    //             await dbWriter.productPhotos.create({
-                    //                 product_photo_id: product_photo_id,
-                    //                 product_id: product_id,
-                    //                 photo_url: _photo_url,
-                    //                 img_sort_order: _img_sort_order,
-                    //                 is_deleted: 0,
-                    //                 created_datetime: created_datetime,
-                    //                 updated_datetime: updated_datetime,
-                    //             })
-                    //             n++
-                    //             _img_sort_order++
-                    //         }
-                    //     }
-                    // }
+                    if (combinations[n].photo_url.length > 0) {
+                        let m = 0, _img_sort_order = 1
+                        while (m < combinations[n].photo_url.length) {
+                            let product_photo_id = uuidv4()
+                            let _photo_url = combinations[n].photo_url[m]
+                            await dbWriter.productPhotos.create({
+                                product_photo_id: product_photo_id,
+                                product_id: product_id,
+                                photo_url: _photo_url,
+                                img_sort_order: _img_sort_order,
+                                is_deleted: 0,
+                                created_datetime: created_datetime,
+                                updated_datetime: updated_datetime,
+                            })
+                            m++
+                            _img_sort_order++
+                        }
+                    }
                 }
                 n++
             }
@@ -339,7 +343,7 @@ class ProductController {
             let {
                 product_category_id, product_subcategory_id, product_name, product_description,
                 product_variant, unit_price, cost_price, rrr_price, stock, attribute_color, attribute_material,
-                attribute_shape, attribute_size, product_images, status
+                attribute_shape, attribute_size, photo_url, status
             } = req.body
             let product_id = id
             let unixTimestamp = Math.floor(new Date().getTime() / 1000);
@@ -381,60 +385,58 @@ class ProductController {
                 }
             })
 
-            // delete old images
-            // let _getProductImages = await dbReader.productPhotos.findAll({
-            //     where: {
-            //         product_id: product_id,
-            //         is_deleted: 0
-            //     }
-            // })
+            // store images...
+            if (updateProduct) {
 
-            // if (_getProductImages) {
-            //     _getProductImages = JSON.parse(JSON.stringify(_getProductImages))
-            //     if (_getProductImages.length > 0) {
-            //         let n = 0
-            //         while (n < _getProductImages.length) {
+                // delete old images
+                let _getProductImages = await dbReader.productPhotos.findAll({
+                    where: {
+                        product_id: product_id,
+                        is_deleted: 0
+                    }
+                })
 
+                if (_getProductImages) {
+                    _getProductImages = JSON.parse(JSON.stringify(_getProductImages))
+                    if (_getProductImages.length > 0) {
+                        let n = 0
+                        while (n < _getProductImages.length) {
+                            await dbWriter.productPhotos.update({
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime,
+                            }, {
+                                where: {
+                                    product_id: product_id,
+                                    is_deleted: 0
+                                }
+                            })
+                            n++
+                        }
+                    }
+                }
 
-            //             await dbWriter.productPhotos.update({
-            //                 is_deleted: 1,
-            //                 updated_datetime: updated_datetime,
-            //             }, {
-            //                 where: {
-            //                     product_id: product_id,
-            //                     is_deleted: 0
-            //                 }
-            //             })
-            //             n++
-            //         }
-            //     }
-            // }
+                // * adding products images...
+                if (photo_url.length > 0) {
+                    let m = 0, _img_sort_order = 1
+                    while (m < photo_url.length) {
+                        let product_photo_id = uuidv4()
+                        let _photo_url = photo_url[m]
+                        await dbWriter.productPhotos.create({
+                            product_photo_id: product_photo_id,
+                            product_id: product_id,
+                            photo_url: _photo_url,
+                            img_sort_order: _img_sort_order,
+                            is_deleted: 0,
+                            created_datetime: created_datetime,
+                            updated_datetime: updated_datetime,
+                        })
+                        m++
+                        _img_sort_order++
+                    }
+                }
+            }
 
-            // // store images...
-            // let formattedString = product_images.replace(/\[|\]|'/g, '');
-            // let _product_images = formattedString.split(',');
-            // if (_product_images.length > 0) {
-            //     let n = 0, _img_sort_order = 1
-            //     while (n < _product_images.length) {
-            //         let product_photo_id = uuidv4()
-            //         let _photo_url = _product_images[n]
-            //         await dbWriter.productPhotos.create({
-            //             product_photo_id: product_photo_id,
-            //             product_id: product_id,
-            //             photo_url: _photo_url,
-            //             img_sort_order: _img_sort_order,
-            //             is_deleted: 0,
-            //             created_datetime: created_datetime,
-            //             updated_datetime: updated_datetime,
-            //         })
-            //         n++
-            //         _img_sort_order++
-            //     }
-            // }
-
-            return new SuccessResponse("Product updated successfully.", {}).send(
-                res
-            );
+            return new SuccessResponse("Product updated successfully.", {}).send(res);
 
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
@@ -478,9 +480,39 @@ class ProductController {
                 }, {
                     where: {
                         product_id: product_id,
-
                     }
                 })
+
+                // delete old images
+                let _getProductImages = await dbReader.productPhotos.findAll({
+                    where: {
+                        product_id: product_id,
+                        is_deleted: 0
+                    }
+                })
+
+                if (_getProductImages) {
+                    _getProductImages = JSON.parse(JSON.stringify(_getProductImages))
+                    if (_getProductImages.length > 0) {
+                        let n = 0
+                        while (n < _getProductImages.length) {
+
+
+                            await dbWriter.productPhotos.update({
+                                is_deleted: 1,
+                                updated_datetime: updated_datetime,
+                            }, {
+                                where: {
+                                    product_id: product_id,
+                                    is_deleted: 0
+                                }
+                            })
+                            n++
+                        }
+                    }
+                }
+
+
             }
 
             return new SuccessResponse("Product has been deleted successfully.", {}).send(
@@ -527,6 +559,42 @@ class ProductController {
                 res
             );
 
+        } catch (e) {
+            ApiError.handle(new BadRequestError(e.message), res);
+        }
+    }
+
+    // ? upload product image
+    uploadeProductImage = async (req, res) => {
+        try {
+            let { product_name, productIndex } = req.body
+            let data = {}
+            if (!req.file) {
+                return res.status(400).send('No file uploaded.');
+            }
+            const sanitizedProductName = product_name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() + "_" + productIndex;
+            const fileName = `products/${sanitizedProductName}/${req.file.originalname}_${Date.now()}.jpg`;
+            const blob = bucket.file(fileName);
+            const blobWriter = blob.createWriteStream({
+                metadata: {
+                    contentType: req.file.mimetype
+                }
+            });
+            blobWriter.on('error', (err) => {
+                console.error('Error uploading to Firebase:', err);
+                res.status(500).send('Failed to upload image.');
+            });
+
+            blobWriter.on('finish', async () => {
+                await blob.makePublic();
+                const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+                // console.log('File uploaded to Storage:', publicUrl);
+                // res.status(200).send(publicUrl);
+                data.publicUrl = publicUrl
+                return new SuccessResponse("Product stock has been upadted successfully.", data).send(res);
+            });
+
+            blobWriter.end(req.file.buffer);
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
         }
@@ -838,7 +906,7 @@ class ProductController {
                 }
             })
 
-            if (!_.isEmpty(_validateProduct)) {
+            if (_.isEmpty(_validateProduct)) {
                 throw new Error("Product does not exist.")
             }
 

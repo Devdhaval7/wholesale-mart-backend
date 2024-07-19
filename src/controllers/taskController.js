@@ -173,9 +173,7 @@ class TaskController {
       if (data) {
         data = JSON.parse(JSON.stringify(data))
       }
-      return new SuccessResponse("Sub-admin list.", data).send(
-        res
-      );
+      return new SuccessResponse("Sub-admin list.", data).send(res);
     } catch (e) {
       ApiError.handle(new BadRequestError(e.message), res);
     }
@@ -417,6 +415,11 @@ class TaskController {
 
       if (data) {
         data = JSON.parse(JSON.stringify(data))
+        data.map(ele => {
+          const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+          const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
+          ele.profile_image = dataURI
+        })
       }
       return new SuccessResponse("Customer list.", data).send(
         res
@@ -511,10 +514,13 @@ class TaskController {
 
       if (getTasks) {
         getTasks = JSON.parse(JSON.stringify(getTasks))
+        getTasks.rows.map(ele => {
+          const base64Image = Buffer.from(ele?.wm_user?.profile_image, 'binary').toString('base64');
+          const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
+          ele.wm_user.profile_image = dataURI
+        })
       }
-      return new SuccessResponse("Client Task lists.", getTasks).send(
-        res
-      );
+      return new SuccessResponse("Client Task lists.", getTasks).send(res);
     } catch (e) {
       ApiError.handle(new BadRequestError(e.message), res);
     }

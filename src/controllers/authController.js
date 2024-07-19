@@ -361,7 +361,7 @@ class AuthController {
         const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
 
         // Construct data URI
-        const dataURI = `data:image/jpeg;base64,${base64Image}`;
+        const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
         userProfile.profile_image = dataURI
       } else {
         throw new Error("User not found");
@@ -452,9 +452,8 @@ class AuthController {
       if (userProfile) {
         userProfile = JSON.parse(JSON.stringify(userProfile));
         const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
-
         // Construct data URI
-        const dataURI = `data:image/jpeg;base64,${base64Image}`;
+        const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
         userProfile.profile_image = dataURI
         let adminPermission = await dbReader.adminPermissions.findOne({
           where: {

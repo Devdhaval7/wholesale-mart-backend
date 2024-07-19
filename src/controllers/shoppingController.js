@@ -25,7 +25,12 @@ class ShoppingController {
                         }, {
                             model: dbReader.productSubCategory
                         }, {
-                            model: dbReader.productPhotos
+                            model: dbReader.productPhotos,
+                            order: [['img_sort_order', 'ASC']],
+                            limit: 1,
+                            // where: {
+                            //     is_deleted: 0
+                            // },
                         }],
                     }]
                 }],
@@ -390,7 +395,12 @@ class ShoppingController {
                             model: dbReader.product,
                             include: [
                                 {
-                                    model: dbReader.productPhotos
+                                    model: dbReader.productPhotos,
+                                    order: [['img_sort_order', 'ASC']],
+                                    limit: 1,
+                                    where: {
+                                        is_deleted: 0
+                                    },
                                 }],
                         }]
                     }],
@@ -467,7 +477,9 @@ class ShoppingController {
                         include: [{
                             model: dbReader.product,
                             include: [{
-                                model: dbReader.productPhotos
+                                model: dbReader.productPhotos,
+                                order: [['img_sort_order', 'ASC']],
+                                limit: 1,
                             }],
                         }]
                     }],
@@ -549,7 +561,9 @@ class ShoppingController {
                     include: [{
                         model: dbReader.product,
                         include: [{
-                            model: dbReader.productPhotos
+                            model: dbReader.productPhotos,
+                            order: [['img_sort_order', 'ASC']],
+                            limit: 1,
                         }],
                     }]
                 }],
@@ -757,7 +771,9 @@ class ShoppingController {
                     include: [{
                         model: dbReader.product,
                         include: [{
-                            model: dbReader.productPhotos
+                            model: dbReader.productPhotos,
+                            order: [['img_sort_order', 'ASC']],
+                            limit: 1,
                         }],
                     }]
                 }],

@@ -9,7 +9,7 @@ const multerConfig = multer({
         fileSize: 2 * 1024 * 1024 // 2MB file size limit
     },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
+        if (file.mimetype.startsWith('image/') || !file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
             cb(null, true);
         } else {
             cb(new Error('Only image files are allowed!'), false);

@@ -71,9 +71,13 @@ class CRMController {
                 limit: row_limit,
                 offset: row_offset
             });
-            return new SuccessResponse("Fetch all users.", _data).send(
-                res
-            );
+            _data = JSON.parse(JSON.stringify(_data))
+            _data.rows.map(ele => {
+                const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+                const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
+                ele.profile_image = dataURI
+            })
+            return new SuccessResponse("Fetch all users.", _data).send(res);
 
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
@@ -130,9 +134,13 @@ class CRMController {
                 limit: row_limit,
                 offset: row_offset
             });
-            return new SuccessResponse("All pending new account requests.", _data).send(
-                res
-            );
+            _data = JSON.parse(JSON.stringify(_data))
+            _data.rows.map(ele => {
+                const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+                const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
+                ele.profile_image = dataURI
+            })
+            return new SuccessResponse("All pending new account requests.", _data).send(res);
 
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
@@ -490,9 +498,13 @@ class CRMController {
                 limit: row_limit,
                 offset: row_offset
             });
-            return new SuccessResponse("Fetch all users.", _data).send(
-                res
-            );
+            _data = JSON.parse(JSON.stringify(_data))
+            _data.rows.map(ele => {
+                const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+                const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
+                ele.profile_image = dataURI
+            })
+            return new SuccessResponse("Fetch all users.", _data).send(res);
 
         } catch (e) {
             ApiError.handle(new BadRequestError(e.message), res);
