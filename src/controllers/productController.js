@@ -13,17 +13,14 @@ const jwt_secret = process.env.SECRET_KEY;
 const moment = require("moment");
 const { generateProductHexCode } = require("../helpers/general");
 
-
+// ? firebase...
 const admin = require('firebase-admin');
-
 // Initialize Firebase Admin SDK
 const serviceAccount = require('../helpers/serviceAccountKey.json');
-
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: 'gs://wholesale-mart-001.appspot.com'
+    storageBucket: process.env.FB_STORAGE_BUCKET_URL
 });
-
 const bucket = admin.storage().bucket();
 
 class ProductController {
@@ -36,13 +33,8 @@ class ProductController {
                 row_limit = 10;
 
             //Pagination
-            if (page_record) {
-                row_limit = parseInt(page_record);
-            }
-
-            if (page_no) {
-                row_offset = page_no * page_record - page_record;
-            }
+            if (page_record) { row_limit = parseInt(page_record); }
+            if (page_no) { row_offset = page_no * page_record - page_record; }
 
             // Searching data by ingredient_name
             var SearchCondition = dbReader.Sequelize.Op.ne,
@@ -63,12 +55,6 @@ class ProductController {
                 sortJoin = [dbReader.Sequelize.literal("product_name"), sortOrder];
             } else if (sort_field == "stock") {
                 sortJoin = [dbReader.Sequelize.literal("stock"), sortOrder];
-            } else if (sort_field == "unit_price") {
-                sortJoin = [dbReader.Sequelize.literal("unit_price"), sortOrder];
-            } else if (sort_field == "cost_price") {
-                sortJoin = [dbReader.Sequelize.literal("cost_price"), sortOrder];
-            } else if (sort_field == "rrr_price") {
-                sortJoin = [dbReader.Sequelize.literal("rrr_price"), sortOrder];
             } else if (sort_field == "status") {
                 sortJoin = [dbReader.Sequelize.literal("status"), sortOrder];
             }
@@ -169,9 +155,7 @@ class ProductController {
                         }
                     })
                 }
-                return new SuccessResponse("List of products.", getAllProducts).send(
-                    res
-                );
+                return new SuccessResponse("List of products.", getAllProducts).send(res);
 
             } else {
                 throw new Error("Data not found")
@@ -260,18 +244,6 @@ class ProductController {
         try {
             let { name, combinations } = req.body
 
-            // * validate product 
-            // let _validateProduct = await dbReader.product.findOne({
-            //     where: {
-            //         product_name: name,
-            //         is_deleted: 0
-            //     }
-            // })
-
-            // if (!_.isEmpty(_validateProduct)) {
-            //     throw new Error("Sorry, Same named product is already exist.")
-            // }
-
             //  ? utilizing combinations
             let n = 0
             while (n < combinations.length) {
@@ -326,7 +298,6 @@ class ProductController {
                 }
                 n++
             }
-
             return new SuccessResponse("Product added successfully.", {}).send(
                 res
             );
@@ -758,6 +729,7 @@ class ProductController {
                         is_deleted: 0
                     }
                 }],
+                order: [['created_datetime', 'DESC']],
                 where: {
                     is_deleted: 0
                 }
@@ -923,6 +895,15 @@ class ProductController {
                     })
                     break;
                 case 2:
+                    let _shoppingCartValidation = await dbReader.shoppingListItems.findOne({
+                        where: {
+                            product_id: product_id,
+                            is_deleted: 0
+                        }
+                    })
+                    if (!_.isEmpty(_shoppingCartValidation)) {
+                        throw new Error("Customers have already purchased this item, so it cannot be de-activate.")
+                    }
                     let _validateProductToCart = await dbReader.userOrdersItems.findOne({
                         where: {
                             product_id: product_id,

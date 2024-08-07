@@ -8,7 +8,7 @@ const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const jwt_secret = process.env.SECRET_KEY;
 const moment = require("moment");
-const { generateUserHexCode } = require("../helpers/general");
+const { generateUserHexCode, sendMail } = require("../helpers/general");
 class CRMController {
 
     // ? List all customers
@@ -73,9 +73,13 @@ class CRMController {
             });
             _data = JSON.parse(JSON.stringify(_data))
             _data.rows.map(ele => {
-                const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
-                const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-                ele.profile_image = dataURI
+                if (ele.profile_image) {
+                    const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+                    const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+                    ele.profile_image = dataURI
+                } else {
+                    ele.profile_image = ""
+                }
             })
             return new SuccessResponse("Fetch all users.", _data).send(res);
 
@@ -136,9 +140,13 @@ class CRMController {
             });
             _data = JSON.parse(JSON.stringify(_data))
             _data.rows.map(ele => {
-                const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
-                const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-                ele.profile_image = dataURI
+                if (ele.profile_image) {
+                    const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+                    const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+                    ele.profile_image = dataURI
+                } else {
+                    ele.profile_image = ""
+                }
             })
             return new SuccessResponse("All pending new account requests.", _data).send(res);
 
@@ -299,7 +307,7 @@ class CRMController {
 
             let user_id = uuidv4();
             let user_role = 0,
-                status = 1, user_password = password;
+                status = 1, user_password = password, _mailPassword = password;
             let userDetails = await dbReader.users.findOne({
                 where: {
                     email: email,
@@ -307,7 +315,6 @@ class CRMController {
                 }
             });
             let userData;
-
             if (!_.isEmpty(userDetails)) {
                 ApiError.handle(new BadRequestError("User already exists."), res);
             } else {
@@ -357,11 +364,11 @@ class CRMController {
                 }
 
                 // * send mail
-                // let _mailOBJ = {
-                //     username: email,
-                //     password: _mailPassword,
-                // }
-                // await sendMail(_mailOBJ)
+                let _mailOBJ = {
+                    username: email,
+                    password: _mailPassword,
+                }
+                await sendMail(_mailOBJ)
 
                 return new SuccessResponse("Customer added successfully", userData).send(res);
             }
@@ -376,7 +383,7 @@ class CRMController {
             let { user_id, name, email, password, company_name, address_main_line, city, state, postcode, country,
                 phone_number, landline_number, gst_number, is_crm_client } = req.body;
             let user_role = 0,
-                status = 1, user_password = password;
+                status = 1, user_password = password, _mailPassword = password;
             let userDetails = await dbReader.users.findOne({
                 where: {
                     email: email,
@@ -425,11 +432,11 @@ class CRMController {
                 }
 
                 // * send mail
-                // let _mailOBJ = {
-                //     username: email,
-                //     password: _mailPassword,
-                // }
-                // await sendMail(_mailOBJ)
+                let _mailOBJ = {
+                    username: email,
+                    password: _mailPassword,
+                }
+                await sendMail(_mailOBJ)
 
                 return new SuccessResponse("Customer updated successfully", userData).send(res);
             }
@@ -500,9 +507,13 @@ class CRMController {
             });
             _data = JSON.parse(JSON.stringify(_data))
             _data.rows.map(ele => {
-                const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
-                const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-                ele.profile_image = dataURI
+                if (ele.profile_image) {
+                    const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+                    const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+                    ele.profile_image = dataURI
+                } else {
+                    ele.profile_image = ""
+                }
             })
             return new SuccessResponse("Fetch all users.", _data).send(res);
 

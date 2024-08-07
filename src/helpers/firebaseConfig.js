@@ -18,8 +18,6 @@ const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
 // Get a reference to the Firebase Storage bucket
-const bucket = ref(storage, 'your-bucket-name');
+const bucket = ref(storage, process.env.FB_STORAGE_BUCKET_URL);
 
-module.exports = {
-    bucket
-};
+module.exports = { bucket };

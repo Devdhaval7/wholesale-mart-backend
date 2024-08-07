@@ -14,7 +14,7 @@ module.exports = async function tokenValidate(req, res, next) {
                     ApiError.handle(new AuthFailureError("Invalid token."), res);
                 } else {
                     var user = await dbReader.users.findOne({
-                        where: { access_token: access_token.toString() },
+                        where: { access_token: access_token.toString(), status: 1, is_deleted: 0 },
                     });
                     if (user) {
                         req.user = decoded

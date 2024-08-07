@@ -17,6 +17,7 @@ class ProductRoute extends ProductController {
         router.put("/editProduct/:id", tokenValidate, validator(jois.editProductPayload), this.editProduct);
         router.delete("/deleteProduct/:id", tokenValidate, this.deleteProduct);
         router.post("/admin/updateStock", tokenValidate, this.updateStock);
+        
         router.post("/admin/uploadeProductImage", multerConfig.single('image'), this.uploadeProductImage); // tokenValidate
 
         // ? Product Category....

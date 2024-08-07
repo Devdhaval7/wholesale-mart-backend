@@ -416,9 +416,13 @@ class TaskController {
       if (data) {
         data = JSON.parse(JSON.stringify(data))
         data.map(ele => {
-          const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
-          const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-          ele.profile_image = dataURI
+          if (ele.profile_image) {
+            const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+            const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+            ele.profile_image = dataURI
+          } else {
+            ele.profile_image = ""
+          }
         })
       }
       return new SuccessResponse("Customer list.", data).send(
@@ -515,9 +519,13 @@ class TaskController {
       if (getTasks) {
         getTasks = JSON.parse(JSON.stringify(getTasks))
         getTasks.rows.map(ele => {
-          const base64Image = Buffer.from(ele?.wm_user?.profile_image, 'binary').toString('base64');
-          const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-          ele.wm_user.profile_image = dataURI
+          if (ele.profile_image) {
+            const base64Image = Buffer.from(ele.profile_image, 'binary').toString('base64');
+            const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+            ele.profile_image = dataURI
+          } else {
+            ele.profile_image = ""
+          }
         })
       }
       return new SuccessResponse("Client Task lists.", getTasks).send(res);

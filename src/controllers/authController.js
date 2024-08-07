@@ -281,13 +281,18 @@ class AuthController {
             }
           });
           updateUserData = JSON.parse(JSON.stringify(updateUserData));
+
+          if (updateUserData.profile_image) {
+            const base64Image = Buffer.from(updateUserData.profile_image, 'binary').toString('base64');
+            const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+            updateUserData.profile_image = dataURI
+          } else {
+            updateUserData.profile_image = ""
+          }
           delete updateUserData.password;
           // delete updateUserData.access_token;
           delete updateUserData.is_deleted;
-
-          return new SuccessResponse("User login successfully", updateUserData).send(
-            res
-          );
+          return new SuccessResponse("User login successfully", updateUserData).send(res);
         } else {
           ApiError.handle(
             new BadRequestError("Invalid username or password."),
@@ -358,11 +363,13 @@ class AuthController {
 
       if (userProfile) {
         userProfile = JSON.parse(JSON.stringify(userProfile));
-        const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
-
-        // Construct data URI
-        const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-        userProfile.profile_image = dataURI
+        if (userProfile.profile_image) {
+          const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
+          const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+          userProfile.profile_image = dataURI
+        } else {
+          userProfile.profile_image = ""
+        }
       } else {
         throw new Error("User not found");
       }
@@ -451,10 +458,13 @@ class AuthController {
 
       if (userProfile) {
         userProfile = JSON.parse(JSON.stringify(userProfile));
-        const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
-        // Construct data URI
-        const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : null;
-        userProfile.profile_image = dataURI
+        if (userProfile.profile_image) {
+          const base64Image = Buffer.from(userProfile.profile_image, 'binary').toString('base64');
+          const dataURI = base64Image ? `data:image/jpeg;base64,${base64Image}` : "";
+          userProfile.profile_image = dataURI
+        } else {
+          userProfile.profile_image = ""
+        }
         let adminPermission = await dbReader.adminPermissions.findOne({
           where: {
             user_id: userProfile.user_id
@@ -1148,11 +1158,9 @@ class AuthController {
           user_id: userId
         }
       });
-      console.log(user)
       if (!user) {
         return res.status(404).json({ error: 'User not found!' });
       }
-
       // Update profile image in the database 
       await dbWriter.users.update({
         profile_image: profileImage
